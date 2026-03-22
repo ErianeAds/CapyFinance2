@@ -9,7 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 8080;
+
+// Log de erros globais para debug на nuvem
+process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
 
 // Middleware
 app.use(cors({
@@ -181,6 +185,6 @@ app.get('/api/valuations/latest', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
