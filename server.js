@@ -128,8 +128,8 @@ app.post('/api/login', (req, res) => {
 app.post('/api/register', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Dados incompletos' });
-  
-  db.run("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", [email, password, 'user'], function(err) {
+
+  db.run("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", [email, password, 'user'], function (err) {
     if (err) {
       if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'E-mail já cadastrado' });
       return res.status(500).json({ error: err.message });
@@ -158,7 +158,7 @@ app.post('/api/courses', (req, res) => {
   const { name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
   const query = `INSERT INTO courses (name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  db.run(query, [name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url], function(err) {
+  db.run(query, [name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url], function (err) {
     if (err) return res.status(400).json({ error: err.message });
     res.json({ success: true, id: this.lastID });
   });
@@ -167,7 +167,7 @@ app.post('/api/courses', (req, res) => {
 app.post('/api/courses/update', (req, res) => {
   const { id, name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
   const query = `UPDATE courses SET name = ?, description = ?, category = ?, thumbnail = ?, video_url = ?, audio_url = ?, slide_url = ?, mindmap_url = ? WHERE id = ?`;
-  db.run(query, [name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url, id], function(err) {
+  db.run(query, [name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url, id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true });
   });
