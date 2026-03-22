@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Valuation - Riparian Flow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-variant": "#ede1cf",
+              "on-primary": "#ffffff",
+              "surface-bright": "#fff8f2",
+              "primary-fixed-dim": "#a1d494",
+              "surface-container-low": "#fef2e0",
+              "secondary": "#2a657e",
+              "primary-fixed": "#bcf0ae",
+              "on-surface": "#201b10",
+              "surface-dim": "#e4d9c7",
+              "on-primary-container": "#9dd090",
+              "outline": "#72796e",
+              "on-primary-fixed": "#002201",
+              "on-background": "#201b10",
+              "primary-container": "#2d5a27",
+              "on-secondary": "#ffffff",
+              "inverse-on-surface": "#fbefdd",
+              "background": "#fff8f2",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#96ceeb",
+              "secondary-fixed": "#bfe8ff",
+              "primary": "#154212",
+              "on-secondary-fixed-variant": "#044d65",
+              "tertiary-fixed": "#ffdcc5",
+              "on-tertiary-container": "#ffb177",
+              "tertiary": "#5c2c00",
+              "inverse-primary": "#a1d494",
+              "surface": "#fff8f2",
+              "tertiary-container": "#7e3f00",
+              "on-surface-variant": "#42493e",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-tertiary-fixed": "#301400",
+              "surface-container-highest": "#ede1cf",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#f2e7d5",
+              "surface-container": "#f8ecda",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#ffb782",
+              "on-tertiary-fixed-variant": "#703800",
+              "on-primary-fixed-variant": "#23501e",
+              "outline-variant": "#c2c9bb",
+              "on-secondary-fixed": "#001f2b",
+              "surface-tint": "#3b6934",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#2b657e",
+              "inverse-surface": "#363024",
+              "secondary-container": "#aae2ff"
+            },
+            fontFamily: {
+              "headline": ["Epilogue"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .floodplain-margin {
+            margin-left: 2rem;
+            margin-right: 3rem;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface flex min-h-screen overflow-hidden">
+<!-- SideNavBar Shell -->
+<aside class="flex flex-col h-screen w-64 p-6 bg-[#fff8f2] dark:bg-stone-950 font-['Epilogue'] tracking-tight border-r-0 shrink-0">
+<div class="mb-10 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-[#154212] dark:text-emerald-400 font-['Epilogue']">Riparian Flow</h1>
+<p class="text-[10px] uppercase tracking-widest text-stone-500">Wealth Management</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#ede1cf]/50 dark:hover:bg-stone-800 transition-colors duration-300 text-stone-500 dark:text-stone-400 group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<!-- Education Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#ede1cf]/50 dark:hover:bg-stone-800 transition-colors duration-300 text-stone-500 dark:text-stone-400 group" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-medium">Education</span>
+</a>
+<!-- Valuation Tab (ACTIVE) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#154212] dark:text-emerald-400 font-bold border-r-4 border-[#154212] dark:border-emerald-500 bg-[#ede1cf]/30 group transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-medium">Valuation</span>
+</a>
+<!-- Market Tab (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#ede1cf]/50 dark:hover:bg-stone-800 transition-colors duration-300 text-stone-500 dark:text-stone-400 group" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="font-medium">Market</span>
+</a>
+</nav>
+<div class="mt-8">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-4 rounded-xl font-bold shadow-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                New Analysis
+            </button>
+</div>
+<div class="mt-auto space-y-1 pt-6 border-t border-surface-container-highest">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-stone-500 dark:text-stone-400 hover:bg-[#ede1cf]/50 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-stone-500 dark:text-stone-400 hover:bg-[#ede1cf]/50 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">help_center</span>
+<span class="text-sm">Support</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- TopNavBar Shell -->
+<header class="w-full sticky top-0 z-50 bg-[#fff8f2]/70 dark:bg-stone-950/70 backdrop-blur-md shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center px-12 py-4 w-full max-w-[1600px] mx-auto">
+<div class="flex items-center gap-12">
+<span class="text-lg font-black text-[#154212] dark:text-emerald-400 font-headline uppercase tracking-tighter">The Riparian Flow</span>
+<nav class="hidden md:flex gap-8 font-['Epilogue'] font-medium">
+<a class="text-stone-600 dark:text-stone-400 hover:text-[#2d5a27] transition-colors" href="#">Portfolio</a>
+<a class="text-stone-600 dark:text-stone-400 hover:text-[#2d5a27] transition-colors" href="#">Insights</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden sm:block">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-stone-400 text-lg">search</span>
+<input class="bg-surface-container-high border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-secondary/20 w-64" placeholder="Search company data..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-stone-600">
+<button class="material-symbols-outlined hover:text-primary transition-colors">notifications</button>
+<div class="flex items-center gap-2 group cursor-pointer">
+<img class="w-8 h-8 rounded-full border-2 border-primary-fixed-dim object-cover" data-alt="Capybara profile avatar illustration" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFIT8BmvHU0gyuskb1JeZyPs-e-FfuhOkOIpQvzdWLnDnR5eqaQi73tf69u9YJtwJRCuqGF7jR83r9gQQdckLjPRapJw-MDxae-RlLbxHBBtLcn3qNdIIPmKQ4oM2ZL7pOUkdk2gHHfDVm7h5c0FrqEsMPv1VKisMr1N3X8Fjcip2kjtf__zYXeIpgmAH_aX09cLoCwbTmMR2ELkTefpxEK8OqQvdM4DwxF9bH1cXuTjOX0uDxTpJLPvHi8ear6Pu0XsJpdjfos8nI"/>
+<span class="material-symbols-outlined text-stone-400 group-hover:text-primary">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<div class="flex-1 p-12 max-w-[1600px] mx-auto w-full space-y-12">
+<!-- Hero Header (Editorial Authority) -->
+<section class="flex flex-col md:flex-row justify-between items-end gap-8">
+<div class="space-y-4 max-w-2xl">
+<div class="flex items-center gap-2 text-tertiary font-label text-xs tracking-widest uppercase">
+<span class="w-8 h-[1px] bg-tertiary"></span>
+                        Strategic Evaluation
+                    </div>
+<h2 class="text-5xl font-black font-headline text-on-surface leading-tight tracking-tight">
+                        Pantanal Eco-Lodge <br/>
+<span class="text-secondary">Valuation Dashboard</span>
+</h2>
+<p class="text-on-surface-variant font-body leading-relaxed opacity-80">
+                        An integrated analysis of intrinsic cash flow performance against the broader regional tourism benchmarks. Leveraging organic growth models derived from ecosystem sustainability.
+                    </p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 bg-surface-container-highest text-on-surface rounded-xl font-bold hover:bg-surface-dim transition-colors">Export PDF</button>
+<button class="px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-bold shadow-lg">Save Analysis</button>
+</div>
+</section>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Main Valuation Card (Asymmetric Span) -->
+<div class="md:col-span-8 bg-surface-container-low rounded-[2rem] p-10 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="flex justify-between items-start mb-12">
+<div>
+<p class="text-sm font-label uppercase tracking-widest text-stone-500 mb-1">Estimated Equity Value</p>
+<h3 class="text-6xl font-black font-headline text-primary">$12.4M</h3>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-4 py-1.5 bg-primary-fixed text-on-primary-fixed text-xs font-bold rounded-full flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+                                    Strong Buy
+                                </span>
+<p class="text-xs text-stone-500 font-label">+18.4% vs Previous Quarter</p>
+</div>
+</div>
+<!-- Data Entry Mini-Grid -->
+<div class="grid grid-cols-3 gap-6 mt-auto">
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<span class="text-xs font-label text-stone-400 block mb-4">Revenue (FY24)</span>
+<span class="text-xl font-bold font-headline">$4.2M</span>
+<div class="w-full bg-surface-variant h-1 rounded-full mt-4 overflow-hidden">
+<div class="bg-primary w-3/4 h-full"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<span class="text-xs font-label text-stone-400 block mb-4">EBITDA Margin</span>
+<span class="text-xl font-bold font-headline">32.4%</span>
+<div class="w-full bg-surface-variant h-1 rounded-full mt-4 overflow-hidden">
+<div class="bg-secondary w-1/2 h-full"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<span class="text-xs font-label text-stone-400 block mb-4">Growth Rate</span>
+<span class="text-xl font-bold font-headline">12.5%</span>
+<div class="w-full bg-surface-variant h-1 rounded-full mt-4 overflow-hidden">
+<div class="bg-tertiary w-2/3 h-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Comparison Card -->
+<div class="md:col-span-4 bg-secondary-container/30 rounded-[2rem] p-10 flex flex-col justify-between border border-secondary/5">
+<div>
+<h4 class="text-xl font-bold font-headline text-on-secondary-container mb-6">Market Comparison</h4>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Eco-Tourism Avg</span>
+<span class="text-sm font-bold">$8.2M</span>
+</div>
+<div class="h-2 bg-on-secondary/50 rounded-full w-full">
+<div class="h-full bg-secondary rounded-full" style="width: 65%;"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Pantanal Premium</span>
+<span class="text-sm font-bold">$10.5M</span>
+</div>
+<div class="h-2 bg-on-secondary/50 rounded-full w-full">
+<div class="h-full bg-secondary rounded-full" style="width: 85%;"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Current Lodge</span>
+<span class="text-sm font-bold text-primary">$12.4M</span>
+</div>
+<div class="h-2 bg-on-secondary/50 rounded-full w-full">
+<div class="h-full bg-primary rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-white/40 backdrop-blur-sm rounded-2xl">
+<p class="text-xs italic text-on-secondary-fixed-variant leading-relaxed">
+                            "The lodge outpaces regional peers due to its proprietary water-rights and exclusive jaguar-trail access."
+                        </p>
+</div>
+</div>
+<!-- Metrics Bento Box -->
+<div class="md:col-span-4 bg-surface-container-highest rounded-[2rem] p-8">
+<h4 class="text-lg font-bold font-headline mb-6">Risk Assessment</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">tsunami</span>
+</div>
+<div>
+<p class="text-sm font-bold">Climate Stability</p>
+<p class="text-xs text-stone-500">Low Exposure</p>
+</div>
+<div class="ml-auto flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-surface-dim"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<div>
+<p class="text-sm font-bold">Regulatory Health</p>
+<p class="text-xs text-stone-500">Compliance Verified</p>
+</div>
+<div class="ml-auto flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chart Placeholder Card -->
+<div class="md:col-span-8 bg-surface-container rounded-[2rem] p-8 flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-lg font-bold font-headline">5-Year Growth Projection</h4>
+<div class="flex gap-2">
+<button class="text-xs font-bold px-3 py-1 bg-primary text-white rounded-full">Organic</button>
+<button class="text-xs font-bold px-3 py-1 text-stone-400 hover:bg-surface-variant rounded-full transition-colors">Aggressive</button>
+</div>
+</div>
+<div class="flex-1 flex items-end gap-3 min-h-[200px] px-4">
+<div class="flex-1 bg-primary-fixed-dim/40 rounded-t-xl h-[40%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">2024</div>
+</div>
+<div class="flex-1 bg-primary-fixed-dim/60 rounded-t-xl h-[55%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">2025</div>
+</div>
+<div class="flex-1 bg-primary-fixed-dim/80 rounded-t-xl h-[70%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">2026</div>
+</div>
+<div class="flex-1 bg-primary rounded-t-xl h-[85%] relative group shadow-lg shadow-primary/20">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">2027</div>
+</div>
+<div class="flex-1 bg-primary-container rounded-t-xl h-[100%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">2028</div>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-outline-variant/20 flex justify-between">
+<div class="flex gap-8">
+<div>
+<p class="text-[10px] uppercase text-stone-400 mb-1">Terminal Value</p>
+<p class="text-sm font-bold">$18.9M</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-stone-400 mb-1">Discount Rate (WACC)</p>
+<p class="text-sm font-bold">8.4%</p>
+</div>
+</div>
+<div class="flex items-center text-primary gap-1">
+<span class="text-xs font-bold">Detailed Model</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Analysis Notes Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12">
+<div class="space-y-6">
+<h5 class="text-xl font-bold font-headline">Analyst Perspective</h5>
+<div class="bg-surface-container-low p-8 rounded-[2rem] border-l-8 border-tertiary">
+<p class="font-body text-on-surface-variant leading-relaxed italic">
+                            "The valuation reflects a 2.4x multiple expansion opportunity within the sustainable lodge sector. We recommend focusing on 'Scope 3' emission reductions to unlock green-fund capital in the next fiscal year. Current EBITDA trajectory is superior to peers due to vertical integration of river-guide services."
+                        </p>
+<div class="mt-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-dim rounded-full flex items-center justify-center text-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Analyst profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO6sTyTfQB9aF4WdixhPPbmChoaJuoo7vzd8k705B2NoH1-6TLtWeNUD8guqKpk3N2vyFchMFZf9ZX_FLI7G38xHx4X6Up7DsCUr5s_f0N8M_EIbzy2nrCdaBobWd9zl_JvQTpgAPlLRXMyau_c3oPZTfwtwEhYL2OiVdXqKxhGIfcyXqhbb7-ZtDggPJqzg_DnZdea8aSWpQeAVGlG7NXVrBP4mldFRVGrkdDO_OVz_YiM9twQftB8xiXYaYsXbwTnATjMb7MMRaF"/>
+</div>
+<div>
+<p class="text-sm font-bold">Julian Merchán</p>
+<p class="text-xs text-stone-500">Chief Valuations Officer</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 rounded-[2rem] p-8 border border-primary/10 flex flex-col justify-center items-center text-center relative">
+<div class="absolute bottom-4 right-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'FILL' 0, 'wght' 100;">water_lux</span>
+</div>
+<span class="material-symbols-outlined text-4xl text-primary mb-4">verified</span>
+<h5 class="text-lg font-bold font-headline mb-2">Pantanal Precision Certified</h5>
+<p class="text-sm text-on-surface-variant max-w-xs mx-auto">
+                        This valuation follows the Riparian Flow proprietary organic assessment framework, verified for environmental impact transparency.
+                    </p>
+<button class="mt-6 text-primary font-bold text-sm underline underline-offset-4 decoration-2">Download Certificate</button>
+</div>
+</section>
+</div>
+<!-- Shared Footer Shell -->
+<footer class="flex flex-col items-center justify-center gap-4 py-12 px-8 w-full mt-auto bg-[#ede1cf] dark:bg-stone-900 border-t border-stone-200/20 font-['Inter'] text-xs tracking-widest uppercase">
+<div class="flex flex-wrap justify-center gap-x-8 gap-y-4">
+<a class="text-stone-500 dark:text-stone-400 hover:text-[#5c2c00] transition-colors" href="#">Privacy Policy</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-[#5c2c00] transition-colors" href="#">Terms of Service</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-[#5c2c00] transition-colors" href="#">Financial Disclosures</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-[#5c2c00] transition-colors" href="#">Sustainability Report</a>
+</div>
+<p class="text-stone-500/60 mt-2">© 2024 Riparian Flow Financial. Inspired by the Pantanal.</p>
+</footer>
+</main>
+</body></html>

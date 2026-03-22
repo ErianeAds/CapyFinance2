@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .pantanal-bg {
+    background-image: linear-gradient(to bottom, rgba(21, 66, 18, 0.2), rgba(32, 27, 16, 0.6)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuA73ZVz46rWM6H0Q-E8thdWHZ65O2Z4uIFCmeGC3hVv0A-6iZxeWc6_8HQR3nLnOU6KaCd_w6ThdFGgR4g1hwabeF7s4W-nxwVQHe-2b9HdtS8XY2Z9ZFndYnUTGfWQ0GIGq_r9VZWTs0uRFyqlfS7JX8QY7e0-9oQSiEK4H7vM_rg9aa7Ual_K37jix42hmrtQ_WCvbTxBpJ7LB_bMXwG_Z9C3x3HwCdIsjEiXJzwR9A-Wm6lGOOO6hk3IuMBV69HvKbL-g9_DETCe);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .glass-panel {
+    background: rgba(255, 248, 242, 0.75);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+}
+
+body {
+  @apply bg-background font-body text-on-background min-h-screen;
+}
