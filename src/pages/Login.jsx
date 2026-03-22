@@ -1,9 +1,42 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const Login = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('capy_user', JSON.stringify(data.user));
+        // Se o usuário veio de uma tentativa de acesso à educação, redireciona para lá
+        navigate('/education');
+      } else {
+        setError(data.error || 'Erro ao fazer login');
+      }
+    } catch (err) {
+      setError('Erro de conexão com o servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="relative flex-grow flex items-center justify-center pantanal-bg p-6 lg:p-12 min-h-screen">
@@ -23,7 +56,13 @@ const Login = () => {
           <p className="text-on-surface-variant font-body text-sm max-w-[280px]">{t('login.subtitle')}</p>
         </div>
         
-        <form className="flex flex-col gap-5">
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-error/10 text-error p-3 rounded-lg text-xs font-bold text-center border border-error/20">
+              {error}
+            </div>
+          )}
+          
           <div className="flex flex-col gap-1.5">
             <label className="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider ml-1" htmlFor="email">{t('login.username')}</label>
             <div className="relative flex items-center">
@@ -31,8 +70,11 @@ const Login = () => {
               <input 
                 className="w-full bg-surface-container-high border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-2 focus:ring-secondary/20 transition-all outline-none" 
                 id="email" 
-                placeholder="john.doe@flow.com" 
+                placeholder="Ex: admin@capyfinance.com" 
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -49,49 +91,40 @@ const Login = () => {
                 id="password" 
                 placeholder="••••••••" 
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
           </div>
           
-          <div className="flex items-center gap-3 mt-2">
-            <input 
-              className="w-5 h-5 rounded-lg border-none bg-surface-container-high text-primary focus:ring-0" 
-              id="remember" 
-              type="checkbox"
-            />
-            <label className="font-body text-sm text-on-surface-variant" htmlFor="remember">{t('login.remember')}</label>
-          </div>
-          
-          <Link 
-            to="/dashboard"
-            className="mt-4 w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg hover:opacity-95 transition-all flex items-center justify-center gap-2 group text-center"
+          <button 
+            type="submit"
+            disabled={loading}
+            className={`mt-4 w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg hover:opacity-95 transition-all flex items-center justify-center gap-2 group text-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <span>{t('login.submit')}</span>
-            <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-          </Link>
+            {loading ? (
+              <span className="animate-spin material-symbols-outlined">sync</span>
+            ) : (
+              <>
+                <span>{t('login.submit')}</span>
+                <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </>
+            )}
+          </button>
         </form>
         
-        <div className="relative flex items-center justify-center py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-outline-variant/30"></div>
-          </div>
-          <span className="relative bg-transparent px-4 font-label text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-[0.2em]">or</span>
-        </div>
-        
-        <div className="flex flex-col items-center gap-4">
-          <p className="font-body text-sm text-on-surface-variant">
-            {t('login.newToFlow')} 
-            <a className="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="#">{t('login.requestAccess')}</a>
+        <div className="flex flex-col items-center gap-6 mt-8">
+          <p className="font-body text-xs text-on-surface-variant leading-relaxed text-center opacity-70">
+            Ainda não tem uma conta? <Link to="/register" className="text-primary font-bold hover:underline">Cadastre-se agora</Link>
+          </p>
+          <p className="font-body text-[10px] text-on-surface-variant leading-relaxed text-center opacity-40 max-w-xs">
+            Dica: Use <b>admin@capyfinance.com</b> / <b>admin123</b> para modo administrador ou <b>user@capyfinance.com</b> / <b>user123</b> para aluno.
           </p>
         </div>
         
         <div className="absolute -bottom-16 -right-12 opacity-20 pointer-events-none select-none">
           <span className="material-symbols-outlined text-[140px] text-primary">pets</span>
-        </div>
-        
-        <div className="absolute bottom-4 right-6 flex items-center gap-2 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
-          <span className="font-headline text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Guardian</span>
-          <span className="material-symbols-outlined text-lg">security</span>
         </div>
       </div>
       
@@ -99,10 +132,6 @@ const Login = () => {
         <p className="font-headline text-on-primary/70 text-lg italic leading-relaxed">
           "Wealth, like the CapyFinance tides, requires precision to navigate and wisdom to preserve."
         </p>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="h-px w-12 bg-on-primary/40"></div>
-          <span className="font-label text-xs uppercase tracking-[0.3em] text-on-primary/60">Ecosystem Principles</span>
-        </div>
       </div>
     </main>
   );
