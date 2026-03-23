@@ -34,6 +34,9 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Rota de diagnóstico para o Vercel confirmar que o servidor está no ar
+app.get('/', (req, res) => res.json({ status: 'OK (Backend na Railway ativo!)' }));
+
 // Database Setup (Nota: No Vercel o SQLite é somente leitura por padrão após o deploy)
 const db = new sqlite3.Database('./capyfinance.db', (err) => {
   if (err) console.error('🔴 Database connection error:', err);
