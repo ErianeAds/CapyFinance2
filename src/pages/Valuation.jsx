@@ -25,7 +25,7 @@ const Valuation = () => {
 
   const fetchValuation = async () => {
     try {
-      const response = await fetch('/api/valuations/latest');
+      const response = await fetch('http://localhost:5001/api/valuations/latest');
       const data = await response.json();
       setValuation(data);
       setForm(data);
@@ -38,7 +38,7 @@ const Valuation = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch('/api/valuations', {
+      const res = await fetch('http://localhost:5001/api/valuations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

@@ -46,7 +46,7 @@ const Education = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/courses');
+      const response = await fetch('http://localhost:5001/api/courses');
       const data = await response.json();
       setCourses(data);
       setLoading(false);
@@ -58,7 +58,7 @@ const Education = () => {
 
   const handleSaveCourse = async (e) => {
     e.preventDefault();
-    const url = courseForm.id ? '/api/courses/update' : '/api/courses';
+    const url = courseForm.id ? 'http://localhost:5001/api/courses/update' : 'http://localhost:5001/api/courses';
     try {
       const response = await fetch(url, {
         method: 'POST',

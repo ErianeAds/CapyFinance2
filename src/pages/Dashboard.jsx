@@ -9,7 +9,7 @@ const Dashboard = () => {
 
   const fetchMetrics = async () => {
     try {
-      const response = await fetch('/api/metrics');
+      const response = await fetch('http://localhost:5001/api/metrics');
       const data = await response.json();
       setMetrics(data);
       setLoading(false);
