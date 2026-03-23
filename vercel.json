@@ -1,13 +1,8 @@
 {
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server.js"
+      "destination": "https://capyfinance-production.up.railway.app/api/$1"
     },
     {
       "source": "/(.*)",
