@@ -121,10 +121,23 @@ app.get('/api/metrics', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
+
   try {
-    const row = db.prepare("SELECT * FROM users WHERE email = ? AND password = ?").get(email, password);
-    if (!row) return res.status(401).json({ error: 'Credenciais inválidas' });
-    res.json({ success: true, user: { email: row.email, role: row.role } });
+    const row = db
+      .prepare("SELECT * FROM users WHERE email = ? AND password = ?")
+      .get(email, password);
+
+    if (!row) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        email: row.email,
+        role: row.role
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Erro no servidor' });
   }
