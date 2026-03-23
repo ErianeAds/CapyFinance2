@@ -73,13 +73,27 @@ db.exec(`CREATE TABLE IF NOT EXISTS courses (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )`);
 
-db.exec(`CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE,
-  password TEXT,
-  role TEXT DEFAULT 'user'
-)`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    password TEXT,
+    role TEXT DEFAULT 'user'
+  )
+`);
 
+const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+
+if (usersCount && usersCount.count === 0) {
+  const insertUser = db.prepare(
+    "INSERT INTO users (email, password, role) VALUES (?, ?, ?)"
+  );
+
+  insertUser.run('admin@capyfinance.com', 'admin123', 'admin');
+  insertUser.run('user@capyfinance.com', 'user123', 'user');
+
+  console.log('Usuários iniciais criados com sucesso.');
+}
 // Seed Data
 const countRow = db.prepare("SELECT COUNT(*) as count FROM market_metrics").get();
 if (countRow && countRow.count === 0) {
