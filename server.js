@@ -143,6 +143,34 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+//Cadastrar
+app.post('/api/register', (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ error: 'E-mail e senha são obrigatórios' });
+    }
+
+    const existingUser = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+
+    if (existingUser) {
+      return res.status(409).json({ error: 'Usuário já cadastrado' });
+    }
+
+    db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
+      .run(email, password, 'user');
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuário cadastrado com sucesso'
+    });
+  } catch (err) {
+    console.error('Erro no cadastro:', err);
+    res.status(500).json({ error: 'Erro ao cadastrar usuário' });
+  }
+});
+
 // Outros endpoints como cursos, etc...
 app.get('/api/courses', (req, res) => {
   try {
