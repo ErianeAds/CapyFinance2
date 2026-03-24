@@ -13,7 +13,8 @@ const fixMediaUrl = (url, type = 'image') => {
   if (url.includes('drive.google.com')) {
     const fileId = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
     if (fileId && fileId[1]) {
-      if (type === 'image' || type === 'audio') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
+      if (type === 'audio') return `https://docs.google.com/uc?export=download&id=${fileId[1]}`;
+      if (type === 'image') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
       if (type === 'preview') return `https://drive.google.com/file/d/${fileId[1]}/preview`;
     }
   }
@@ -105,8 +106,23 @@ const Education = () => {
 
   useEffect(() => {
     if (selectedCourse) {
-      setActiveMedia(selectedCourse.video_url ? 'video' : (selectedCourse.slide_url ? 'slide' : 'none'));
+      setActiveMedia(
+        selectedCourse.video_url
+          ? 'video'
+          : selectedCourse.slide_url
+          ? 'slide'
+          : selectedCourse.audio_url
+          ? 'audio'
+          : 'none'
+      );
+      
       setIsPlaying(false);
+      setCurrentTime(0);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
     } else {
       setActiveMedia(null);
       setIsPlaying(false);
@@ -306,17 +322,21 @@ const Education = () => {
                   { id: 'video', label: 'Vídeo da Aula', icon: 'smart_display', url: selectedCourse.video_url, embeddable: true },
                   { id: 'slide', label: 'Material PDF / Slides', icon: 'description', url: selectedCourse.slide_url, embeddable: true },
                   { id: 'mindmap', label: 'Mapa Mental', icon: 'hub', url: selectedCourse.mindmap_url, embeddable: true },
-                  { id: 'audio', label: 'Podcast Especial', icon: 'volume_up', url: selectedCourse.audio_url, embeddable: false },
+                  { id: 'audio', label: 'Podcast Especial', icon: 'volume_up', url: selectedCourse.audio_url, embeddable: true },
                 ].map((item) => (
                   item.url && (
                     <button 
                       key={item.id}
                       onClick={() => {
+                        if (item.id === 'audio') {
+                          setActiveMedia('audio');
+                          return;
+                        }
+                        
                         if (item.embeddable) {
                           setActiveMedia(item.id);
                           document.getElementById('document-viewer')?.scrollIntoView({ behavior: 'smooth' });
                         } else {
-                          // For non-embeddable like raw audio files if not handled by player
                           window.open(item.url, '_blank');
                         }
                       }}
@@ -330,7 +350,7 @@ const Education = () => {
                         <span className={`material-symbols-outlined ${activeMedia === item.id ? 'text-white' : 'text-primary'}`}>{item.icon}</span>
                         <span className="font-bold text-sm">{item.label}</span>
                       </div>
-                      {!item.embeddable && <span className="material-symbols-outlined text-sm opacity-60">open_in_new</span>}
+                      {!item.embeddable && item.id !== 'audio' && <span className="material-symbols-outlined text-sm opacity-60">open_in_new</span>}
                     </button>
                   )
                 ))}
