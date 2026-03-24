@@ -47,11 +47,21 @@ const Education = () => {
   const fetchCourses = async () => {
     try {
       const response = await fetch('/api/courses');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const data = await response.json();
-      setCourses(data);
+      
+      // Garantia de que courses sempre será um array para evitar crash no .map()
+      if (Array.isArray(data)) {
+        setCourses(data);
+      } else {
+        console.warn('API de cursos não retornou um array:', data);
+        setCourses([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching courses:', error);
+      setCourses([]); // Fallback para array vazio
       setLoading(false);
     }
   };

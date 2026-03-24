@@ -10,11 +10,21 @@ const Dashboard = () => {
   const fetchMetrics = async () => {
     try {
       const response = await fetch('/api/metrics');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const data = await response.json();
-      setMetrics(data);
+      
+      // Garante que metrics seja um array para evitar crash no .map() ou .find()
+      if (Array.isArray(data)) {
+        setMetrics(data);
+      } else {
+        console.warn('API de métricas não retornou um array:', data);
+        setMetrics([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching metrics:', error);
+      setMetrics([]); // Fallback para array vazio
       setLoading(false);
     }
   };

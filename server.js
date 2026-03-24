@@ -95,6 +95,19 @@ if (countRow && countRow.count === 0) {
   });
 }
 
+const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+if (userCount && userCount.count === 0) {
+  const users = [
+    ['admin@capyfinance.com', 'admin123', 'admin'],
+    ['user@capyfinance.com', 'user123', 'user']
+  ];
+  const insert = db.prepare(`INSERT INTO users (email, password, role) VALUES (?, ?, ?)`);
+  users.forEach(([email, password, role]) => {
+    insert.run(email, password, role);
+  });
+  console.log('🌿 Seeded default users.');
+}
+
 // --- API ENDPOINTS ---
 app.get('/api/metrics', (req, res) => {
   try {
@@ -112,7 +125,23 @@ app.post('/api/login', (req, res) => {
     if (!row) return res.status(401).json({ error: 'Credenciais inválidas' });
     res.json({ success: true, user: { email: row.email, role: row.role } });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
+app.post('/api/register', (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const insert = db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)");
+    insert.run(email, password, 'user');
+    res.json({ success: true });
+  } catch (err) {
+    if (err.code === 'SQLITE_CONSTRAINT') {
+      return res.status(400).json({ error: 'E-mail já cadastrado' });
+    }
+    console.error('Register error:', err);
+    res.status(500).json({ error: 'Erro ao criar conta' });
   }
 });
 

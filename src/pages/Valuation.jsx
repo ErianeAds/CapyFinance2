@@ -26,12 +26,22 @@ const Valuation = () => {
   const fetchValuation = async () => {
     try {
       const response = await fetch('/api/valuations/latest');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const data = await response.json();
-      setValuation(data);
-      setForm(data);
+      
+      // Verifica se recebemos um objeto de erro da Railway ou um objeto de valuation real
+      if (data && data.lodge_name) {
+        setValuation(data);
+        setForm(data);
+      } else {
+        console.warn('API de valuation não retornou dados válidos:', data);
+        setValuation(null);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching valuation:', error);
+      setValuation(null);
       setLoading(false);
     }
   };
