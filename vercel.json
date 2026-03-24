@@ -5,6 +5,10 @@
       "destination": "https://capyfinance2-production.up.railway.app/api/$1"
     },
     {
+      "source": "/audio/(.*)",
+      "destination": "https://capyfinance2-production.up.railway.app/audio/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

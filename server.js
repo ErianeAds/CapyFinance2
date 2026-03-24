@@ -13,6 +13,27 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.use(cors({
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Suporte a rede local (Private Network Access)
+app.use((req, res, next) => {
+  if (req.headers['access-control-request-private-network']) {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+  next();
+});
+
+app.use(bodyParser.json());
+
+// Log de erros globais para debug no Vercel
+process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
+
 // caminho absoluto da pasta de áudio
 const audioDir = path.join(__dirname, 'public', 'audio');
 
@@ -46,12 +67,14 @@ const upload = multer({
 
 app.post('/api/upload-audio', (req, res) => {
   upload.single('audio')(req, res, (err) => {
+    console.log('DEBUG: req.file =', req.file); // Adicionado para debug
     if (err) {
       console.error('Erro no upload:', err);
       return res.status(500).json({ error: err.message });
     }
 
     if (!req.file) {
+      console.warn('DEBUG: req.file is missing!');
       return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     }
 
@@ -61,27 +84,6 @@ app.post('/api/upload-audio', (req, res) => {
     });
   });
 });
-
-app.use(cors({
-  origin: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-// Suporte a rede local
-app.use((req, res, next) => {
-  if (req.headers['access-control-request-private-network']) {
-    res.setHeader('Access-Control-Allow-Private-Network', 'true');
-  }
-  next();
-});
-
-app.use(bodyParser.json());
-
-// Log de erros globais para debug no Vercel
-process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
-process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
 
 // servir arquivos do build
 app.use(express.static(path.join(__dirname, 'dist')));
