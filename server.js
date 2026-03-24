@@ -188,10 +188,41 @@ app.post('/api/register', (req, res) => {
 // Outros endpoints como cursos, etc...
 app.get('/api/courses', (req, res) => {
   try {
-    const rows = db.prepare("SELECT * FROM courses").all();
+    const rows = db.prepare("SELECT * FROM courses ORDER BY id DESC").all();
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/courses', (req, res) => {
+  const { name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
+  try {
+    const insert = db.prepare(`
+      INSERT INTO courses (name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const result = insert.run(name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url);
+    res.status(201).json({ success: true, id: result.lastInsertRowid });
+  } catch (err) {
+    console.error('Error creating course:', err);
+    res.status(500).json({ error: 'Erro ao criar curso' });
+  }
+});
+
+app.post('/api/courses/update', (req, res) => {
+  const { id, name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
+  try {
+    const update = db.prepare(`
+      UPDATE courses 
+      SET name = ?, description = ?, category = ?, thumbnail = ?, video_url = ?, audio_url = ?, slide_url = ?, mindmap_url = ?
+      WHERE id = ?
+    `);
+    update.run(name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url, id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating course:', err);
+    res.status(500).json({ error: 'Erro ao atualizar curso' });
   }
 });
 
