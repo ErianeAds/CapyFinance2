@@ -4,8 +4,8 @@ import bodyParser from 'body-parser';
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import path from 'path';
-
 import multer from 'multer';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,47 +13,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Configuração do Multer para upload de áudio
+// caminho absoluto da pasta de áudio
+const audioDir = path.join(__dirname, 'public', 'audio');
+
+// cria a pasta se não existir
+if (!fs.existsSync(audioDir)) {
+  fs.mkdirSync(audioDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dest = path.join(__dirname, 'public', 'audio');
-    cb(null, dest);
+    cb(null, audioDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '_'));
+    const safeName = file.originalname.replace(/\s+/g, '_');
+    cb(null, `${uniqueSuffix}-${safeName}`);
   }
 });
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 100 * 1024 * 1024 } // 100MB Limit
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype?.startsWith('audio/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Arquivo inválido. Envie um áudio.'));
+    }
+  }
 });
 
 app.post('/api/upload-audio', (req, res) => {
   upload.single('audio')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      console.error('Multer error:', err);
-      return res.status(400).json({ error: `Erro no upload: ${err.message}` });
-    } else if (err) {
-      console.error('Unknown upload error:', err);
-      return res.status(500).json({ error: `Erro interno no upload: ${err.message}` });
+    if (err) {
+      console.error('Erro no upload:', err);
+      return res.status(500).json({ error: err.message });
     }
 
     if (!req.file) {
-       return res.status(400).json({ error: 'Nenhum arquivo recebido' });
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     }
 
-    console.log(`✅ Arquivo recebido: ${req.file.filename}`);
-    res.json({ success: true, url: `/audio/${req.file.filename}` });
+    res.json({
+      success: true,
+      url: `/audio/${req.file.filename}`
+    });
   });
 });
 
-// Log de erros globais para debug no Vercel
-process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
-process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
-
-// Middleware
 app.use(cors({
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -70,7 +78,16 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+
+// Log de erros globais para debug no Vercel
+process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
+
+// servir arquivos do build
 app.use(express.static(path.join(__dirname, 'dist')));
+
+// servir áudios enviados
+app.use('/audio', express.static(audioDir));
 
 // Rota de diagnóstico para o Vercel confirmar que o servidor está no ar
 app.get('/', (req, res) => res.json({ status: 'OK (Backend na Railway ativo!)' }));
