@@ -210,17 +210,28 @@ const Education = () => {
     });
 
     xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        const data = JSON.parse(xhr.responseText);
-        if (data.success) {
-          setCourseForm(prev => ({ ...prev, audio_url: data.url }));
-        } else {
-          alert("Erro no upload: " + data.error);
-        }
-      } else {
-        alert("Erro no servidor: " + xhr.status);
-      }
       setUploading(false);
+      try {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const data = JSON.parse(xhr.responseText);
+          if (data.success) {
+            setCourseForm(prev => ({ ...prev, audio_url: data.url }));
+          } else {
+            alert("Erro no upload: " + (data.error || "Erro desconhecido"));
+          }
+        } else {
+          // Tentar parsear o erro do servidor se for um JSON
+          let errorMsg = `Erro ${xhr.status}`;
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            if (errorData.error) errorMsg = errorData.error;
+          } catch(e) {}
+          alert("O servidor recusou o arquivo: " + errorMsg);
+        }
+      } catch (err) {
+        console.error("Erro ao processar resposta do servidor:", err);
+        alert("O servidor enviou uma resposta inválida.");
+      }
     });
 
     xhr.addEventListener('error', () => {

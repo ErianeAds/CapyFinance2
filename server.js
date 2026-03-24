@@ -16,7 +16,8 @@ const PORT = process.env.PORT || 8080;
 // Configuração do Multer para upload de áudio
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/audio/');
+    const dest = path.join(__dirname, 'public', 'audio');
+    cb(null, dest);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -24,15 +25,28 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB Limit
+});
 
-app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+app.post('/api/upload-audio', (req, res) => {
+  upload.single('audio')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ error: `Erro no upload: ${err.message}` });
+    } else if (err) {
+      console.error('Unknown upload error:', err);
+      return res.status(500).json({ error: `Erro interno no upload: ${err.message}` });
+    }
+
+    if (!req.file) {
+       return res.status(400).json({ error: 'Nenhum arquivo recebido' });
+    }
+
+    console.log(`✅ Arquivo recebido: ${req.file.filename}`);
     res.json({ success: true, url: `/audio/${req.file.filename}` });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // Log de erros globais para debug no Vercel
@@ -62,7 +76,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.get('/', (req, res) => res.json({ status: 'OK (Backend na Railway ativo!)' }));
 
 // Database Setup - Using better-sqlite3 for synchronous and faster operations
-const db = new Database('./capyfinance.db');
+const db = new Database(path.join(__dirname, 'capyfinance.db'));
 console.log('🌿 Connected to CapyFinance SQLite Database (better-sqlite3).');
 
 // Initialize Tables
