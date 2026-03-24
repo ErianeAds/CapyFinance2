@@ -27,7 +27,13 @@ const Header = ({ onMenuClick }) => {
 
   const currentLang = languages.find((l) => l.code === i18n.language) || languages[0];
 
-  const user = JSON.parse(localStorage.getItem('capy_user') || '{}');
+  let user = null;
+  const userString = localStorage.getItem('capy_user');
+  if (userString) {
+    try {
+      user = JSON.parse(userString);
+    } catch(e) {}
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-outline/20 px-4 py-3">

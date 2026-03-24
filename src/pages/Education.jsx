@@ -151,7 +151,10 @@ const Education = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/courses');
+      const token = localStorage.getItem('capy_token');
+      const response = await fetch('/api/courses', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
@@ -174,10 +177,14 @@ const Education = () => {
   const handleSaveCourse = async (e) => {
     e.preventDefault();
     const url = courseForm.id ? '/api/courses/update' : '/api/courses';
+    const token = localStorage.getItem('capy_token');
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json' ,
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(courseForm)
       });
       if (response.ok) {
@@ -239,7 +246,9 @@ const Education = () => {
       setUploading(false);
     });
 
+    const token = localStorage.getItem('capy_token');
     xhr.open('POST', '/api/upload-audio');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
   };
 
@@ -251,10 +260,14 @@ const Education = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Cuidado! Você tem certeza que deseja excluir este módulo permanentemente?")) return;
     
+    const token = localStorage.getItem('capy_token');
     try {
       const response = await fetch('/api/courses/delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ id })
       });
       if (response.ok) {

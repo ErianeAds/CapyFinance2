@@ -8,10 +8,13 @@ const Sidebar = ({ onNavigate, mobile = false }) => {
   const navigate = useNavigate();
 
   let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem('capy_user'));
-  } catch {
-    user = null;
+  const userString = localStorage.getItem('capy_user');
+  if (userString) {
+    try {
+      user = JSON.parse(userString);
+    } catch (e) {
+      console.error("Error parsing user from localStorage", e);
+    }
   }
 
   const navItems = [
@@ -22,7 +25,7 @@ const Sidebar = ({ onNavigate, mobile = false }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('capy_user');
-    navigate('/');
+    navigate('/login');
     if (onNavigate) onNavigate();
   };
 

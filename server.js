@@ -6,12 +6,21 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import multer from 'multer';
 import fs from 'fs';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import helmet from 'helmet';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'capy-secret-2024-keep-safe-in-production';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+app.use(helmet({
+  contentSecurityPolicy: false, // Permitir iframes do YT e Drive
+}));
 
 app.use(cors({
   origin: true,
@@ -33,6 +42,27 @@ app.use(bodyParser.json());
 // Log de erros globais para debug no Vercel
 process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('⚠️ Rejeição não tratada:', reason));
+
+// Auth Middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ error: 'Token não fornecido' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Token inválido ou expirado' });
+    req.user = user;
+    next();
+  });
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Acesso negado: Somente administradores' });
+  }
+  next();
+};
 
 // caminho absoluto da pasta de áudio
 const audioDir = path.join(__dirname, 'public', 'audio');
@@ -65,7 +95,7 @@ const upload = multer({
   }
 });
 
-app.post('/api/upload-audio', (req, res) => {
+app.post('/api/upload-audio', authenticateToken, isAdmin, (req, res) => {
   upload.single('audio')(req, res, (err) => {
     console.log('DEBUG: req.file =', req.file); // Adicionado para debug
     if (err) {
@@ -139,19 +169,21 @@ db.exec(`
   )
 `);
 
-const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
-
-if (usersCount && usersCount.count === 0) {
-  const insertUser = db.prepare(
-    "INSERT INTO users (email, password, role) VALUES (?, ?, ?)"
-  );
-
-  insertUser.run('admin@capyfinance.com', 'admin123', 'admin');
-  insertUser.run('user@capyfinance.com', 'user123', 'user');
-
-  console.log('Usuários iniciais criados com sucesso.');
-}
 // Seed Data
+const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+if (usersCount && usersCount.count === 0) {
+  const users = [
+    ['admin@capyfinance.com', 'admin123', 'admin'],
+    ['user@capyfinance.com', 'user123', 'user']
+  ];
+  const insert = db.prepare(`INSERT INTO users (email, password, role) VALUES (?, ?, ?)`);
+  users.forEach(([email, password, role]) => {
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    insert.run(email, hashedPassword, role);
+  });
+  console.log('🌿 Usuários iniciais (hasheados) criados com sucesso.');
+}
+
 const countRow = db.prepare("SELECT COUNT(*) as count FROM market_metrics").get();
 if (countRow && countRow.count === 0) {
   const metrics = [
@@ -164,23 +196,11 @@ if (countRow && countRow.count === 0) {
   metrics.forEach(([symbol, value, change]) => {
     insert.run(symbol, value, change);
   });
-}
-
-const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
-if (userCount && userCount.count === 0) {
-  const users = [
-    ['admin@capyfinance.com', 'admin123', 'admin'],
-    ['user@capyfinance.com', 'user123', 'user']
-  ];
-  const insert = db.prepare(`INSERT INTO users (email, password, role) VALUES (?, ?, ?)`);
-  users.forEach(([email, password, role]) => {
-    insert.run(email, password, role);
-  });
-  console.log('🌿 Seeded default users.');
+  console.log('🌿 Market metrics seeded.');
 }
 
 // --- API ENDPOINTS ---
-app.get('/api/metrics', (req, res) => {
+app.get('/api/metrics', authenticateToken, (req, res) => {
   try {
     const rows = db.prepare("SELECT * FROM market_metrics").all();
     res.json(rows);
@@ -193,16 +213,26 @@ app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const row = db
-      .prepare("SELECT * FROM users WHERE email = ? AND password = ?")
-      .get(email, password);
+    const row = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
 
     if (!row) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
+    const isValid = bcrypt.compareSync(password, row.password);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Credencial inválida' });
+    }
+
+    const token = jwt.sign(
+      { id: row.id, email: row.email, role: row.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
     res.json({
       success: true,
+      token,
       user: {
         email: row.email,
         role: row.role
@@ -229,8 +259,10 @@ app.post('/api/register', (req, res) => {
       return res.status(409).json({ error: 'Usuário já cadastrado' });
     }
 
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
     db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
-      .run(email, password, 'user');
+      .run(email, hashedPassword, 'user');
 
     res.status(201).json({
       success: true,
@@ -243,7 +275,7 @@ app.post('/api/register', (req, res) => {
 });
 
 // Outros endpoints como cursos, etc...
-app.get('/api/courses', (req, res) => {
+app.get('/api/courses', authenticateToken, (req, res) => {
   try {
     const rows = db.prepare("SELECT * FROM courses ORDER BY id DESC").all();
     res.json(rows);
@@ -252,7 +284,7 @@ app.get('/api/courses', (req, res) => {
   }
 });
 
-app.post('/api/courses', (req, res) => {
+app.post('/api/courses', authenticateToken, isAdmin, (req, res) => {
   const { name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
   try {
     const insert = db.prepare(`
@@ -267,7 +299,7 @@ app.post('/api/courses', (req, res) => {
   }
 });
 
-app.post('/api/courses/update', (req, res) => {
+app.post('/api/courses/update', authenticateToken, isAdmin, (req, res) => {
   const { id, name, description, category, thumbnail, video_url, audio_url, slide_url, mindmap_url } = req.body;
   try {
     const update = db.prepare(`
@@ -283,7 +315,7 @@ app.post('/api/courses/update', (req, res) => {
   }
 });
 
-app.post('/api/courses/delete', (req, res) => {
+app.post('/api/courses/delete', authenticateToken, isAdmin, (req, res) => {
   const { id } = req.body;
   try {
     db.prepare("DELETE FROM courses WHERE id = ?").run(id);
@@ -295,12 +327,27 @@ app.post('/api/courses/delete', (req, res) => {
 });
 
 
-app.get('/api/valuations/latest', (req, res) => {
+app.get('/api/valuations/latest', authenticateToken, (req, res) => {
   try {
     const row = db.prepare("SELECT * FROM valuations ORDER BY created_at DESC LIMIT 1").get();
     res.json(row || { lodge_name: 'Pantanal Eco-Lodge', equity_value: 12400000, revenue: 4200000, ebitda_margin: 32.4, growth_rate: 12.5 });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/valuations', authenticateToken, isAdmin, (req, res) => {
+  const { lodge_name, equity_value, revenue, ebitda_margin, growth_rate } = req.body;
+  try {
+    const insert = db.prepare(`
+      INSERT INTO valuations (lodge_name, equity_value, revenue, ebitda_margin, growth_rate) 
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    insert.run(lodge_name, equity_value, revenue, ebitda_margin, growth_rate);
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.error('Error creating valuation:', err);
+    res.status(500).json({ error: 'Erro ao criar valuation' });
   }
 });
 

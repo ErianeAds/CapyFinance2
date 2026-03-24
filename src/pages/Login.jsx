@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-// API URL mapping
-const API_URL = 'https://capyfinance2-production.up.railway.app';
-
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -18,7 +15,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch('/api/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email, password }),
@@ -28,6 +25,7 @@ const Login = () => {
 
       if (response.ok) {
         localStorage.setItem('capy_user', JSON.stringify(data.user));
+        localStorage.setItem('capy_token', data.token); // Salva o JWT
         // Se o usuário veio de uma tentativa de acesso à educação, redireciona para lá
         navigate('/education');
       } else {

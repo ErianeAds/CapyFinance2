@@ -9,7 +9,10 @@ const Dashboard = () => {
 
   const fetchMetrics = async () => {
     try {
-      const response = await fetch('/api/metrics');
+      const token = localStorage.getItem('capy_token');
+      const response = await fetch('/api/metrics', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();

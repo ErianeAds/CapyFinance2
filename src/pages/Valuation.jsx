@@ -25,7 +25,10 @@ const Valuation = () => {
 
   const fetchValuation = async () => {
     try {
-      const response = await fetch('/api/valuations/latest');
+      const token = localStorage.getItem('capy_token');
+      const response = await fetch('/api/valuations/latest', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
@@ -47,10 +50,14 @@ const Valuation = () => {
   };
 
   const handleSave = async () => {
+    const token = localStorage.getItem('capy_token');
     try {
       const res = await fetch('/api/valuations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(form)
       });
       if (res.ok) {
