@@ -39,21 +39,23 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="px-12 py-8 max-w-[1600px] mx-auto w-full space-y-10">
+      <div className="space-y-8 md:space-y-12">
         
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-black font-headline text-on-surface tracking-tight">Ecosystem Dashboard</h1>
-          <div className="flex items-center gap-2 text-primary font-bold text-xs bg-primary/5 px-4 py-2 rounded-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl md:text-4xl font-black font-headline text-on-surface tracking-tight leading-tight">
+            Ecosystem Dashboard
+          </h1>
+          <div className="flex items-center gap-2 text-primary font-bold text-[10px] md:text-xs bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             Live Market Feed
           </div>
         </div>
 
         {/* Market Ticker Section */}
-        <section className="flex flex-wrap gap-4">
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {metrics.map(m => (
-            <div key={m.symbol} className="bg-surface-container-low px-6 py-4 rounded-2xl flex items-center gap-4 flex-1 min-w-[200px] transition-all hover:shadow-md">
+            <div key={m.symbol} className="bg-surface-container-low px-4 py-3 md:px-6 md:py-4 rounded-xl md:rounded-2xl flex flex-col md:flex-row md:items-center gap-2 md:gap-4 transition-all hover:shadow-md border border-outline/5 hover:border-primary/20">
               <div className={`w-2 h-2 rounded-full ${m.symbol === 'Ibovespa' ? 'bg-primary shadow-[0_0_8px_rgba(21,66,18,0.5)]' : m.symbol === 'Selic' ? 'bg-tertiary' : m.symbol === 'IPCA' ? 'bg-secondary' : 'bg-primary-container'}`}></div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant opacity-60">
@@ -73,8 +75,8 @@ const Dashboard = () => {
         </section>
 
         {/* Main Bento Grid */}
-        <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-3xl p-8 shadow-sm relative overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+          <div className="col-span-1 md:col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden ring-1 ring-outline/5">
             <div className="flex justify-between items-start mb-8 relative z-10">
               <div>
                 <h2 className="font-headline text-2xl font-bold">{t('nav.portfolio')} Ecosystem</h2>
@@ -95,9 +97,9 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-4 bg-surface-container-highest rounded-3xl p-8 flex flex-col justify-between">
+          <div className="col-span-1 md:col-span-12 lg:col-span-4 bg-surface-container-highest rounded-3xl p-6 md:p-8 flex flex-col justify-between ring-1 ring-outline/5">
             <div>
-              <h2 className="font-headline text-xl font-bold mb-6">Asset Biomass</h2>
+              <h2 className="font-headline text-lg md:text-xl font-bold mb-6">Asset Biomass</h2>
               <div className="space-y-6">
                 {[
                   { name: 'Fixed Income', color: 'bg-primary', percentage: '65%' },

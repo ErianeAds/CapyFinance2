@@ -95,12 +95,12 @@ const Education = () => {
 
   return (
     <Layout>
-      <section className="px-12 py-12 max-w-[1600px] mx-auto w-full transition-all duration-500 ease-in-out">
+      <div className="space-y-8 md:space-y-12">
         {/* Header Section */}
-        <div className="flex justify-between items-end mb-16">
+        <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 md:mb-16">
           <div className="max-w-2xl">
-            <h2 className="font-headline text-primary font-black leading-tight mb-4 tracking-tight text-5xl">
-              Central do Aluno <br/>
+            <h2 className="font-headline text-primary font-black leading-tight mb-2 md:mb-4 tracking-tight text-3xl md:text-5xl">
+              Central do Aluno <br className="hidden md:block"/>
               <span className="text-secondary opacity-80">CapyFinance Education</span>
             </h2>
           </div>
@@ -110,7 +110,7 @@ const Education = () => {
                 setCourseForm({ name: '', description: '', category: '', thumbnail: '', video_url: '', audio_url: '', slide_url: '', mindmap_url: '' });
                 setIsEditing(true);
               }}
-              className="bg-primary text-on-primary px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+              className="bg-primary text-on-primary px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all text-center"
             >
               Novo Módulo
             </button>
@@ -119,12 +119,12 @@ const Education = () => {
 
         {/* Viewer */}
         {selectedCourse ? (
-          <div className="bg-surface-container-lowest rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in-95 duration-500 border border-primary/10 overflow-hidden relative">
+          <div className="bg-surface-container-lowest rounded-2xl md:rounded-[2.5rem] p-4 md:p-10 shadow-2xl animate-in zoom-in-95 duration-500 border border-primary/10 overflow-hidden relative">
             <button 
               onClick={() => setSelectedCourse(null)}
-              className="absolute top-8 right-8 text-on-surface-variant/40 hover:text-primary transition-colors z-50 bg-white/10 p-2 rounded-full"
+              className="absolute top-4 right-4 md:top-8 md:right-8 text-on-surface-variant/40 hover:text-primary transition-colors z-50 bg-black/5 md:bg-white/10 p-2 rounded-full"
             >
-              <span className="material-symbols-outlined text-4xl">close</span>
+              <span className="material-symbols-outlined text-2xl md:text-4xl">close</span>
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -160,24 +160,24 @@ const Education = () => {
                   </div>
                 </div>
 
-                {/* Podcast Audio Player */}
+                  {/* Podcast Audio Player */}
                 {selectedCourse.audio_url && (
-                  <div className="bg-gradient-to-br from-tertiary/10 to-primary/5 p-8 rounded-[2rem] border border-tertiary/20 flex flex-col md:flex-row items-center gap-8 shadow-sm">
-                    <div className="w-24 h-24 bg-tertiary rounded-2xl flex items-center justify-center text-white shadow-lg">
-                       <span className="material-symbols-outlined text-5xl">headphones</span>
+                  <div className="bg-gradient-to-br from-tertiary/10 to-primary/5 p-6 md:p-8 rounded-2xl md:rounded-[2rem] border border-tertiary/20 flex flex-col sm:flex-row items-center gap-6 md:gap-8 shadow-sm">
+                    <div className="w-16 h-16 md:w-24 md:h-24 bg-tertiary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+                       <span className="material-symbols-outlined text-3xl md:text-5xl">headphones</span>
                     </div>
-                    <div className="flex-1 space-y-4">
-                       <h4 className="text-2xl font-black font-headline text-primary">Audio Overview Podcast</h4>
-                       <audio controls className="w-full h-10">
+                    <div className="flex-1 space-y-3 md:space-y-4 w-full">
+                       <h4 className="text-xl md:text-2xl font-black font-headline text-primary">Audio Overview Podcast</h4>
+                       <audio controls className="w-full h-10 ring-1 ring-primary/10 rounded-full bg-white/50">
                           <source src={selectedCourse.audio_url} type="audio/mpeg" />
                        </audio>
                     </div>
                   </div>
                 )}
                 
-                <div className="pt-4">
-                  <h3 className="text-3xl font-black font-headline text-primary mb-4">{selectedCourse.name}</h3>
-                  <p className="text-on-surface-variant leading-relaxed text-lg max-w-3xl">{selectedCourse.description}</p>
+                <div className="pt-4 px-2 md:px-0">
+                  <h3 className="text-2xl md:text-3xl font-black font-headline text-primary mb-3 md:mb-4">{selectedCourse.name}</h3>
+                  <p className="text-on-surface-variant leading-relaxed text-sm md:text-lg max-w-3xl">{selectedCourse.description}</p>
                 </div>
               </div>
 
@@ -251,9 +251,9 @@ const Education = () => {
 
         {/* Admin Modal */}
         {isEditing && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-6 transition-all">
-            <div className="bg-surface-container-lowest w-full max-w-4xl rounded-[3rem] p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-primary/20">
-              <h3 className="text-3xl font-black font-headline text-primary mb-10 border-b border-primary/10 pb-6">{courseForm.id ? 'Editar Módulo' : 'Novo Módulo'}</h3>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4 md:p-6 transition-all">
+            <div className="bg-surface-container-lowest w-full max-w-4xl rounded-2xl md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-primary/20">
+              <h3 className="text-xl md:text-3xl font-black font-headline text-primary mb-6 md:mb-10 border-b border-primary/10 pb-4 md:pb-6">{courseForm.id ? 'Editar Módulo' : 'Novo Módulo'}</h3>
               <form onSubmit={handleSaveCourse} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-stone-400">Título</label>
@@ -306,7 +306,7 @@ const Education = () => {
             </div>
           </div>
         )}
-      </section>
+      </div>
     </Layout>
   );
 };

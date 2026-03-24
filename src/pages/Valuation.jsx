@@ -74,24 +74,24 @@ const Valuation = () => {
 
   return (
     <Layout>
-      <div className="flex-1 p-12 max-w-[1600px] mx-auto w-full space-y-12 transition-all duration-500 ease-in-out">
+      <div className="space-y-8 md:space-y-12">
         {/* Hero Header */}
-        <section className="flex flex-col md:flex-row justify-between items-end gap-8">
+        <section className="flex flex-col lg:flex-row justify-between lg:items-end gap-8">
           <div className="space-y-4 max-w-2xl">
-            <div className="flex items-center gap-2 text-tertiary font-body text-xs tracking-widest uppercase">
+            <div className="flex items-center gap-2 text-tertiary font-body text-[10px] md:text-xs tracking-widest uppercase">
               <span className="w-8 h-[1px] bg-tertiary"></span>
               Strategic Evaluation
             </div>
-            <h2 className="text-5xl font-black font-headline text-on-surface leading-tight tracking-tight">
-              {data.lodge_name} <br/>
+            <h2 className="text-3xl md:text-5xl font-black font-headline text-on-surface leading-tight tracking-tight">
+              {data.lodge_name} <br className="hidden md:block" />
               <span className="text-secondary">Valuation Dashboard</span>
             </h2>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
             {isAdmin && (
               <button 
                 onClick={() => setIsEditing(!isEditing)}
-                className="px-6 py-3 bg-surface-container-highest text-on-surface rounded-xl font-bold hover:bg-surface-dim transition-colors flex items-center gap-2"
+                className="flex-1 sm:flex-none px-4 md:px-6 py-2.5 md:py-3 bg-surface-container-highest text-on-surface rounded-xl font-bold hover:bg-surface-dim transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <span className="material-symbols-outlined text-sm">{isEditing ? 'close' : 'edit'}</span>
                 {isEditing ? 'Cancel' : 'Edit Analysis'}
@@ -100,14 +100,14 @@ const Valuation = () => {
             {isAdmin && isEditing && (
               <button 
                 onClick={handleSave}
-                className="px-6 py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-bold shadow-lg flex items-center gap-2"
+                className="flex-1 sm:flex-none px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 text-sm"
               >
                 <span className="material-symbols-outlined text-sm">save</span>
                 Save Changes
               </button>
             )}
             {!isEditing && (
-              <button className="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold shadow-lg">Export Report</button>
+              <button className="flex-1 sm:flex-none px-4 md:px-6 py-2.5 md:py-3 bg-primary text-on-primary rounded-xl font-bold shadow-lg text-sm transition-transform active:scale-95">Export Report</button>
             )}
           </div>
         </section>
@@ -144,24 +144,24 @@ const Valuation = () => {
           </div>
         ) : (
           /* Bento Grid Dashboard View */
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
             {/* Main Valuation Card */}
-            <div className="md:col-span-8 bg-surface-container-low rounded-[2rem] p-10 relative overflow-hidden group border border-outline-variant/10">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-20 -mt-20 blur-3xl transition-transform group-hover:scale-110 duration-700"></div>
+            <div className="md:col-span-12 lg:col-span-8 bg-surface-container-low rounded-2xl md:rounded-[2rem] p-6 md:p-10 relative overflow-hidden group border border-outline-variant/10">
+              <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/5 rounded-full -mr-10 md:-mr-20 -mt-10 md:-mt-20 blur-3xl transition-transform group-hover:scale-110 duration-700"></div>
               <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-12">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-12">
                   <div>
-                    <p className="text-sm font-body uppercase tracking-widest text-stone-500 mb-1">Estimated Equity Value</p>
-                    <h3 className="text-6xl font-black font-headline text-primary">
+                    <p className="text-xs md:text-sm font-body uppercase tracking-widest text-stone-500 mb-1">Estimated Equity Value</p>
+                    <h3 className="text-4xl md:text-6xl font-black font-headline text-primary">
                       ${(data.equity_value / 1000000).toFixed(1)}M
                     </h3>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="px-4 py-1.5 bg-primary-fixed text-on-primary-fixed text-xs font-bold rounded-full flex items-center gap-1 mb-2">
+                  <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-0">
+                    <span className="px-3 md:px-4 py-1.5 bg-primary-fixed text-on-primary-fixed text-[10px] md:text-xs font-bold rounded-full flex items-center gap-1 sm:mb-2">
                       <span className="material-symbols-outlined text-sm">trending_up</span>
                       Strong Buy
                     </span>
-                    <p className="text-[10px] uppercase text-stone-400 font-bold tracking-widest">Calculated by CapyAI</p>
+                    <p className="text-[9px] md:text-[10px] uppercase text-stone-400 font-bold tracking-widest whitespace-nowrap">Calculated by CapyAI</p>
                   </div>
                 </div>
                 
