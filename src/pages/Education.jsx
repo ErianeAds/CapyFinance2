@@ -13,7 +13,7 @@ const fixMediaUrl = (url, type = 'image') => {
   if (url.includes('drive.google.com')) {
     const fileId = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
     if (fileId && fileId[1]) {
-      if (type === 'image') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
+      if (type === 'image' || type === 'audio') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
       if (type === 'preview') return `https://drive.google.com/file/d/${fileId[1]}/preview`;
     }
   }
@@ -66,8 +66,9 @@ const Education = () => {
   };
 
   const togglePlay = () => {
+    if (!audioRef.current) return;
     if (audioRef.current.paused) {
-      audioRef.current.play();
+      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
       setIsPlaying(true);
     } else {
       audioRef.current.pause();
@@ -76,7 +77,9 @@ const Education = () => {
   };
 
   const handleTimeUpdate = () => {
-    setCurrentTime(audioRef.current.currentTime);
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
   };
 
   const handleLoadedMetadata = () => {
@@ -278,11 +281,12 @@ const Education = () => {
                         {/* Audio Element (Hidden) */}
                         <audio 
                           ref={audioRef}
-                          src={selectedCourse.audio_url}
+                          src={fixMediaUrl(selectedCourse.audio_url, 'audio')}
                           onTimeUpdate={handleTimeUpdate}
                           onLoadedMetadata={handleLoadedMetadata}
                           onEnded={handleAudioEnded}
                           className="hidden"
+                          preload="metadata"
                         />
                       </div>
                     </div>
