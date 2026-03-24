@@ -18,9 +18,22 @@ const fixMediaUrl = (url, type = 'image') => {
     }
   }
   
-  // YouTube Fixer
-  if (url.includes('youtube.com/watch?v=')) {
-    return url.replace('watch?v=', 'embed/');
+  // YouTube Fixer (Advanced)
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    } else if (url.includes('youtube.com/embed/')) {
+      videoId = url.split('embed/')[1].split('?')[0];
+    } else if (url.includes('youtube.com/shorts/')) {
+      videoId = url.split('shorts/')[1].split('?')[0];
+    }
+    
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=0`;
+    }
   }
   
   return url;
@@ -37,12 +50,21 @@ const Education = () => {
     name: '', description: '', category: '', thumbnail: '', 
     video_url: '', audio_url: '', slide_url: '', mindmap_url: ''
   });
+  const [activeMedia, setActiveMedia] = useState(null);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('capy_user'));
     setUser(storedUser);
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      setActiveMedia(selectedCourse.video_url ? 'video' : (selectedCourse.slide_url ? 'slide' : 'none'));
+    } else {
+      setActiveMedia(null);
+    }
+  }, [selectedCourse]);
 
   const fetchCourses = async () => {
     try {
@@ -131,26 +153,31 @@ const Education = () => {
               <div className="lg:col-span-8 space-y-8">
                 {/* Visualizador de Documento / Vídeo / NotebookLM */}
                 <div id="document-viewer" className="aspect-video bg-stone-900 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-primary/5 flex items-center justify-center relative">
-                  {/* Iframe que resolve o problema do #document nao renderizar */}
-                  {selectedCourse.video_url ? (
+                  {(activeMedia === 'video' && selectedCourse.video_url) ? (
                     <iframe 
                       src={fixMediaUrl(selectedCourse.video_url)} 
                       className="w-full h-full border-none"
                       allowFullScreen
                       title="Video Content"
                     />
-                  ) : selectedCourse.slide_url && (isNotebookLM(selectedCourse.slide_url) || selectedCourse.slide_url.includes('drive.google.com')) ? (
+                  ) : (activeMedia === 'slide' && selectedCourse.slide_url) ? (
                     <iframe 
                       src={fixMediaUrl(selectedCourse.slide_url, 'preview')} 
                       className="w-full h-full border-none"
                       title="Document Content"
+                    />
+                  ) : (activeMedia === 'mindmap' && selectedCourse.mindmap_url) ? (
+                    <iframe 
+                      src={fixMediaUrl(selectedCourse.mindmap_url, 'preview')} 
+                      className="w-full h-full border-none"
+                      title="Mindmap Content"
                     />
                   ) : isNotebookLM(selectedCourse.thumbnail) ? (
                     <iframe src={selectedCourse.thumbnail} className="w-full h-full border-none" title="NotebookLM Content"/>
                   ) : (
                     <div className="flex flex-col items-center gap-4 text-white/20">
                        <span className="material-symbols-outlined text-8xl">description</span>
-                       <p className="font-headline font-black uppercase text-xs tracking-widest">Nenhum documento para exibir no momento</p>
+                       <p className="font-headline font-black uppercase text-xs tracking-widest text-center px-6">Escolha um material no kit ao lado para começar</p>
                     </div>
                   )}
                   
@@ -185,25 +212,35 @@ const Education = () => {
               <div className="lg:col-span-4 bg-surface-container rounded-[2rem] p-8 space-y-6">
                 <h4 className="font-headline font-bold text-xl mb-6">Kit do Aluno</h4>
                 {[
-                  { label: 'Vídeo da Aula', icon: 'smart_display', url: selectedCourse.video_url },
-                  { label: 'Podcast Especial', icon: 'volume_up', url: selectedCourse.audio_url },
-                  { label: 'Caderno NotebookLM', icon: 'auto_awesome', url: isNotebookLM(selectedCourse.slide_url) ? selectedCourse.slide_url : (isNotebookLM(selectedCourse.thumbnail) ? selectedCourse.thumbnail : '') },
-                  { label: 'Material PDF / Slides', icon: 'description', url: selectedCourse.slide_url },
-                  { label: 'Mapa Mental', icon: 'hub', url: selectedCourse.mindmap_url },
+                  { id: 'video', label: 'Vídeo da Aula', icon: 'smart_display', url: selectedCourse.video_url, embeddable: true },
+                  { id: 'slide', label: 'Material PDF / Slides', icon: 'description', url: selectedCourse.slide_url, embeddable: true },
+                  { id: 'mindmap', label: 'Mapa Mental', icon: 'hub', url: selectedCourse.mindmap_url, embeddable: true },
+                  { id: 'audio', label: 'Podcast Especial', icon: 'volume_up', url: selectedCourse.audio_url, embeddable: false },
                 ].map((item) => (
                   item.url && (
-                    <a 
-                      key={item.label}
-                      href={item.url || '#'} 
-                      target="_blank"
-                      className="flex items-center justify-between p-5 rounded-2xl transition-all border bg-surface-container-lowest border-primary/10 hover:shadow-xl hover:border-primary/40 group"
+                    <button 
+                      key={item.id}
+                      onClick={() => {
+                        if (item.embeddable) {
+                          setActiveMedia(item.id);
+                          document.getElementById('document-viewer')?.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          // For non-embeddable like raw audio files if not handled by player
+                          window.open(item.url, '_blank');
+                        }
+                      }}
+                      className={`w-full flex items-center justify-between p-5 rounded-2xl transition-all border ${
+                        activeMedia === item.id 
+                          ? 'bg-primary text-white border-primary shadow-lg scale-105' 
+                          : 'bg-surface-container-lowest border-primary/10 hover:shadow-xl hover:border-primary/40 group'
+                      }`}
                     >
                       <div className="flex items-center gap-4">
-                        <span className="material-symbols-outlined text-primary">{item.icon}</span>
-                        <span className="font-bold text-sm text-on-surface">{item.label}</span>
+                        <span className={`material-symbols-outlined ${activeMedia === item.id ? 'text-white' : 'text-primary'}`}>{item.icon}</span>
+                        <span className="font-bold text-sm">{item.label}</span>
                       </div>
-                      <span className="material-symbols-outlined text-primary text-sm opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span>
-                    </a>
+                      {!item.embeddable && <span className="material-symbols-outlined text-sm opacity-60">open_in_new</span>}
+                    </button>
                   )
                 ))}
               </div>
