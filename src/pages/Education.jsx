@@ -57,6 +57,7 @@ const Education = () => {
   });
   const [activeMedia, setActiveMedia] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Custom Audio State
   const audioRef = useRef(null);
@@ -189,31 +190,46 @@ const Education = () => {
     }
   };
 
-  const handleAudioUpload = async (e) => {
+  const handleAudioUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setUploading(true);
+    setUploadProgress(0);
+    
     const formData = new FormData();
     formData.append('audio', file);
 
-    try {
-      const response = await fetch('/api/upload-audio', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      if (data.success) {
-        setCourseForm(prev => ({ ...prev, audio_url: data.url }));
-      } else {
-        alert("Erro no upload: " + data.error);
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert("Erro ao enviar arquivo.");
-    } finally {
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const data = JSON.parse(xhr.responseText);
+        if (data.success) {
+          setCourseForm(prev => ({ ...prev, audio_url: data.url }));
+        } else {
+          alert("Erro no upload: " + data.error);
+        }
+      } else {
+        alert("Erro no servidor: " + xhr.status);
+      }
       setUploading(false);
-    }
+    });
+
+    xhr.addEventListener('error', () => {
+      alert("Erro na conexão durante o upload.");
+      setUploading(false);
+    });
+
+    xhr.open('POST', '/api/upload-audio');
+    xhr.send(formData);
   };
 
   const handleEdit = (course) => {
@@ -481,7 +497,7 @@ const Education = () => {
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-tertiary flex justify-between items-center">
                       <span>Upload do Áudio</span>
-                      {uploading && <span className="animate-pulse">Enviando...</span>}
+                      {uploading && <span className="animate-pulse">{uploadProgress}% Concluído</span>}
                    </label>
                    <div className="relative">
                       <input 
@@ -493,14 +509,29 @@ const Education = () => {
                       />
                       <label 
                         htmlFor="audio-upload"
-                        className={`w-full flex items-center gap-3 bg-surface-container p-5 rounded-2xl cursor-pointer hover:bg-stone-200 transition-all border-2 border-dashed ${courseForm.audio_url ? 'border-primary' : 'border-stone-300'}`}
+                        className={`w-full flex flex-col items-center gap-3 bg-surface-container p-6 rounded-2xl cursor-pointer hover:bg-stone-200 transition-all border-2 border-dashed relative overflow-hidden ${courseForm.audio_url ? 'border-primary' : 'border-stone-300'}`}
                       >
-                         <span className="material-symbols-outlined text-primary">
-                           {uploading ? 'cloud_upload' : (courseForm.audio_url ? 'check_circle' : 'upload_file')}
-                         </span>
-                         <span className="text-xs font-bold truncate">
-                            {uploading ? 'Subindo arquivo...' : (courseForm.audio_url ? `Arquivo pronto: ${courseForm.audio_url.split('/').pop()}` : 'Selecionar arquivo MP3')}
-                         </span>
+                         {/* Barra de Progresso no Fundo */}
+                         {uploading && (
+                           <div 
+                             className="absolute inset-0 bg-primary/10 transition-all duration-300" 
+                             style={{ width: `${uploadProgress}%` }}
+                           ></div>
+                         )}
+                         
+                         <div className="flex items-center gap-4 relative z-10">
+                           <span className="material-symbols-outlined text-primary text-3xl">
+                             {uploading ? 'sync' : (courseForm.audio_url ? 'check_circle' : 'upload_file')}
+                           </span>
+                           <div className="text-left">
+                              <p className="text-xs font-black uppercase tracking-widest text-primary leading-tight">
+                                 {uploading ? 'Enviando...' : (courseForm.audio_url ? 'Upload Concluído' : 'Selecionar MP3')}
+                              </p>
+                              <p className="text-[10px] font-bold text-stone-500 max-w-[200px] truncate">
+                                {uploading ? `Subindo: ${uploadProgress}%` : (courseForm.audio_url ? `Arquivo: ${courseForm.audio_url.split('/').pop()}` : 'Máximo 50MB recomendado')}
+                              </p>
+                           </div>
+                         </div>
                       </label>
                    </div>
                 </div>
