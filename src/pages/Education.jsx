@@ -13,7 +13,7 @@ const fixMediaUrl = (url, type = 'image') => {
   if (url.includes('drive.google.com')) {
     const fileId = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
     if (fileId && fileId[1]) {
-      if (type === 'audio') return `https://docs.google.com/uc?export=download&id=${fileId[1]}`;
+      if (type === 'audio') return `https://drive.google.com/uc?export=view&id=${fileId[1]}`;
       if (type === 'image') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
       if (type === 'preview') return `https://drive.google.com/file/d/${fileId[1]}/preview`;
     }
