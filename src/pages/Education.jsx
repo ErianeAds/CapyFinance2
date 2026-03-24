@@ -248,6 +248,26 @@ const Education = () => {
     setIsEditing(true);
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Cuidado! Você tem certeza que deseja excluir este módulo permanentemente?")) return;
+    
+    try {
+      const response = await fetch('/api/courses/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (response.ok) {
+        setIsEditing(false);
+        setSelectedCourse(null);
+        fetchCourses();
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      alert("Houve um erro ao tentar excluir o módulo.");
+    }
+  };
+
   const isAdmin = user?.role === 'admin';
   const isNotebookLM = (url) => url && url.includes('notebooklm.google.com');
 
@@ -432,43 +452,57 @@ const Education = () => {
             </div>
           </div>
         ) : (
-          /* Card Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {courses.map((course) => (
-              <div 
-                key={course.id} 
-                className="group flex flex-col bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-outline-variant/10 hover:translate-y-[-8px]"
-              >
-                <div className="relative aspect-video overflow-hidden bg-stone-100 cursor-pointer" onClick={() => setSelectedCourse(course)}>
-                  <img 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
-                    alt={course.name} 
-                    src={fixMediaUrl(course.thumbnail)}
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
-                    <span className="text-white/80 text-[10px] font-bold uppercase tracking-[0.2em] mb-1 block">{course.category}</span>
-                    <h4 className="text-white font-headline text-2xl font-black leading-tight">{course.name}</h4>
+          /* Transition States for Better UX */
+          loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-surface-container rounded-[2rem] h-96 animate-pulse border border-primary/5"></div>
+              ))}
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="text-center py-24 bg-surface-container/30 rounded-[3rem] border-2 border-dashed border-primary/10">
+               <span className="material-symbols-outlined text-6xl text-primary/20 mb-4">inventory_2</span>
+               <p className="font-headline font-black uppercase text-xs tracking-widest text-stone-400">Nenhum módulo encontrado</p>
+            </div>
+          ) : (
+            /* Card Grid */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {courses.map((course) => (
+                <div 
+                  key={course.id} 
+                  className="group flex flex-col bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-outline-variant/10 hover:translate-y-[-8px]"
+                >
+                  <div className="relative aspect-video overflow-hidden bg-stone-100 cursor-pointer" onClick={() => setSelectedCourse(course)}>
+                    <img 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
+                      alt={course.name} 
+                      src={fixMediaUrl(course.thumbnail)}
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
+                      <span className="bg-secondary/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[9px] font-black uppercase tracking-widest mb-2 inline-block border border-white/10">{course.category || 'Geral'}</span>
+                      <h4 className="text-white font-headline text-2xl font-black leading-tight line-clamp-1">{course.name}</h4>
+                    </div>
+                    {isAdmin && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleEdit(course); }}
+                        className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-3 rounded-full text-white hover:bg-primary transition-all shadow-lg z-20"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                    )}
                   </div>
-                  {isAdmin && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleEdit(course); }}
-                      className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-3 rounded-full text-white hover:bg-primary transition-all shadow-lg z-20"
-                    >
-                      <span className="material-symbols-outlined text-sm">edit</span>
+                  <div className="p-8 flex flex-col flex-1 justify-between bg-white relative">
+                    <p className="text-on-surface-variant text-sm line-clamp-2 leading-relaxed mb-6 font-body">
+                      {course.description}
+                    </p>
+                    <button onClick={() => setSelectedCourse(course)} className="w-full h-14 bg-primary/5 text-primary rounded-xl font-black uppercase text-xs tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all">
+                      Estudar Agora
                     </button>
-                  )}
+                  </div>
                 </div>
-                <div className="p-8 flex flex-col flex-1 justify-between bg-white relative">
-                  <p className="text-on-surface-variant text-sm line-clamp-2 leading-relaxed mb-6 font-body">
-                    {course.description}
-                  </p>
-                  <button onClick={() => setSelectedCourse(course)} className="w-full h-14 bg-primary/5 text-primary rounded-xl font-black uppercase text-xs tracking-widest border border-primary/10 hover:bg-primary hover:text-white transition-all">
-                    Estudar Agora
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
 
         {/* Admin Modal */}
@@ -555,11 +589,25 @@ const Education = () => {
                    <input className="w-full bg-surface-container border-none p-5 rounded-2xl text-xs font-bold focus:ring-2 ring-primary transition-all outline-none" value={courseForm.mindmap_url} onChange={e => setCourseForm({...courseForm, mindmap_url: e.target.value})} />
                 </div>
                 
-                <div className="md:col-span-2 flex justify-end gap-6 mt-12 pt-8 border-t border-primary/10">
-                  <button type="button" onClick={() => setIsEditing(false)} className="px-10 py-5 text-stone-400 font-bold uppercase text-xs">Cancelar</button>
-                  <button type="submit" className="bg-primary text-on-primary px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/30">
-                    Salvar Mudanças
-                  </button>
+                <div className="md:col-span-2 flex flex-col md:flex-row justify-between gap-6 mt-12 pt-8 border-t border-primary/10">
+                  <div>
+                    {courseForm.id && (
+                      <button 
+                        type="button" 
+                        onClick={() => handleDelete(courseForm.id)}
+                        className="bg-red-50 text-red-600 px-8 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
+                      >
+                         <span className="material-symbols-outlined text-sm">delete</span>
+                         Excluir Módulo
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-4">
+                    <button type="button" onClick={() => setIsEditing(false)} className="px-10 py-5 text-stone-400 font-bold uppercase text-xs hover:text-stone-600 transition-colors">Cancelar</button>
+                    <button type="submit" className="bg-primary text-on-primary px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all">
+                      Salvar Mudanças
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
