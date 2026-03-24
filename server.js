@@ -73,13 +73,27 @@ db.exec(`CREATE TABLE IF NOT EXISTS courses (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )`);
 
-db.exec(`CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE,
-  password TEXT,
-  role TEXT DEFAULT 'user'
-)`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    password TEXT,
+    role TEXT DEFAULT 'user'
+  )
+`);
 
+const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+
+if (usersCount && usersCount.count === 0) {
+  const insertUser = db.prepare(
+    "INSERT INTO users (email, password, role) VALUES (?, ?, ?)"
+  );
+
+  insertUser.run('admin@capyfinance.com', 'admin123', 'admin');
+  insertUser.run('user@capyfinance.com', 'user123', 'user');
+
+  console.log('Usuários iniciais criados com sucesso.');
+}
 // Seed Data
 const countRow = db.prepare("SELECT COUNT(*) as count FROM market_metrics").get();
 if (countRow && countRow.count === 0) {
@@ -120,28 +134,54 @@ app.get('/api/metrics', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
+
   try {
-    const row = db.prepare("SELECT * FROM users WHERE email = ? AND password = ?").get(email, password);
-    if (!row) return res.status(401).json({ error: 'Credenciais inválidas' });
-    res.json({ success: true, user: { email: row.email, role: row.role } });
+    const row = db
+      .prepare("SELECT * FROM users WHERE email = ? AND password = ?")
+      .get(email, password);
+
+    if (!row) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        email: row.email,
+        role: row.role
+      }
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Erro no servidor' });
   }
 });
 
+//Cadastrar
 app.post('/api/register', (req, res) => {
   const { email, password } = req.body;
+
   try {
-    const insert = db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)");
-    insert.run(email, password, 'user');
-    res.json({ success: true });
-  } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT') {
-      return res.status(400).json({ error: 'E-mail já cadastrado' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'E-mail e senha são obrigatórios' });
     }
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Erro ao criar conta' });
+
+    const existingUser = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+
+    if (existingUser) {
+      return res.status(409).json({ error: 'Usuário já cadastrado' });
+    }
+
+    db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
+      .run(email, password, 'user');
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuário cadastrado com sucesso'
+    });
+  } catch (err) {
+    console.error('Erro no cadastro:', err);
+    res.status(500).json({ error: 'Erro ao cadastrar usuário' });
   }
 });
 
