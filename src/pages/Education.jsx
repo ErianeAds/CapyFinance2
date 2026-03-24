@@ -7,15 +7,19 @@ import { useTranslation } from 'react-i18next';
  * to direct-render image or preview URLs.
  */
 const fixMediaUrl = (url, type = 'image') => {
-  if (!url) return 'https://images.unsplash.com/photo-1590424753858-3b6b1f31b6df?w=800&q=80';
+  // Novo placeholder mais robusto (Unsplash Source)
+  const placeholder = 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&q=80';
+  if (!url) return placeholder;
   
   // Google Drive Fixer
   if (url.includes('drive.google.com')) {
     const fileId = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
     if (fileId && fileId[1]) {
-      if (type === 'audio') return `https://docs.google.com/uc?export=download&id=${fileId[1]}`;
-      if (type === 'image') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
-      if (type === 'preview') return `https://drive.google.com/file/d/${fileId[1]}/preview`;
+      const id = fileId[1];
+      // Para áudio, tentamos o formato uc?id=ID que às vezes contorna o 403 se o arquivo for público
+      if (type === 'audio') return `https://docs.google.com/uc?id=${id}&export=download`;
+      if (type === 'image') return `https://docs.google.com/uc?id=${id}&export=view`;
+      if (type === 'preview') return `https://drive.google.com/file/d/${id}/preview`;
     }
   }
   
@@ -52,7 +56,8 @@ const Education = () => {
     video_url: '', audio_url: '', slide_url: '', mindmap_url: ''
   });
   const [activeMedia, setActiveMedia] = useState(null);
-  
+  const [uploading, setUploading] = useState(false);
+
   // Custom Audio State
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -181,6 +186,33 @@ const Education = () => {
       }
     } catch (error) {
       console.error('Error saving course:', error);
+    }
+  };
+
+  const handleAudioUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    try {
+      const response = await fetch('/api/upload-audio', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCourseForm(prev => ({ ...prev, audio_url: data.url }));
+      } else {
+        alert("Erro no upload: " + data.error);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert("Erro ao enviar arquivo.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -447,8 +479,30 @@ const Education = () => {
                    <input className="w-full bg-surface-container border-none p-5 rounded-2xl text-xs font-bold focus:ring-2 ring-primary transition-all outline-none" value={courseForm.video_url} onChange={e => setCourseForm({...courseForm, video_url: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-tertiary">Link do Áudio</label>
-                   <input className="w-full bg-surface-container border-none p-5 rounded-2xl text-xs font-bold focus:ring-2 ring-tertiary transition-all outline-none" value={courseForm.audio_url} onChange={e => setCourseForm({...courseForm, audio_url: e.target.value})} />
+                   <label className="text-[10px] font-black uppercase tracking-widest text-tertiary flex justify-between items-center">
+                      <span>Upload do Áudio</span>
+                      {uploading && <span className="animate-pulse">Enviando...</span>}
+                   </label>
+                   <div className="relative">
+                      <input 
+                        type="file" 
+                        accept="audio/*"
+                        onChange={handleAudioUpload}
+                        className="hidden" 
+                        id="audio-upload"
+                      />
+                      <label 
+                        htmlFor="audio-upload"
+                        className={`w-full flex items-center gap-3 bg-surface-container p-5 rounded-2xl cursor-pointer hover:bg-stone-200 transition-all border-2 border-dashed ${courseForm.audio_url ? 'border-primary' : 'border-stone-300'}`}
+                      >
+                         <span className="material-symbols-outlined text-primary">
+                           {uploading ? 'cloud_upload' : (courseForm.audio_url ? 'check_circle' : 'upload_file')}
+                         </span>
+                         <span className="text-xs font-bold truncate">
+                            {uploading ? 'Subindo arquivo...' : (courseForm.audio_url ? `Arquivo pronto: ${courseForm.audio_url.split('/').pop()}` : 'Selecionar arquivo MP3')}
+                         </span>
+                      </label>
+                   </div>
                 </div>
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">NotebookLM / Slides</label>

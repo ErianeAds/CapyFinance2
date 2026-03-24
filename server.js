@@ -5,11 +5,35 @@ import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+import multer from 'multer';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// Configuração do Multer para upload de áudio
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/audio/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '_'));
+  }
+});
+
+const upload = multer({ storage: storage });
+
+app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+    res.json({ success: true, url: `/audio/${req.file.filename}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Log de erros globais para debug no Vercel
 process.on('uncaughtException', (err) => console.error('🚫 Erro Crítico:', err));
