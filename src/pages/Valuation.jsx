@@ -25,7 +25,9 @@ const Valuation = () => {
 
   const fetchValuation = async () => {
     try {
-      const token = localStorage.getItem('capy_token');
+      const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+      const token = storedUser?.token;
+      
       const response = await fetch('/api/valuations/latest', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -50,7 +52,9 @@ const Valuation = () => {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem('capy_token');
+    const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+    const token = storedUser?.token;
+    
     try {
       const res = await fetch('/api/valuations', {
         method: 'POST',

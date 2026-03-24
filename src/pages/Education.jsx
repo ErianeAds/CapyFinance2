@@ -151,7 +151,9 @@ const Education = () => {
 
   const fetchCourses = async () => {
     try {
-      const token = localStorage.getItem('capy_token');
+      const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+      const token = storedUser?.token;
+      
       const response = await fetch('/api/courses', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -177,7 +179,9 @@ const Education = () => {
   const handleSaveCourse = async (e) => {
     e.preventDefault();
     const url = courseForm.id ? '/api/courses/update' : '/api/courses';
-    const token = localStorage.getItem('capy_token');
+    const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+    const token = storedUser?.token;
+    
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -246,7 +250,9 @@ const Education = () => {
       setUploading(false);
     });
 
-    const token = localStorage.getItem('capy_token');
+    const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+    const token = storedUser?.token;
+    
     xhr.open('POST', '/api/upload-audio');
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
@@ -260,7 +266,9 @@ const Education = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Cuidado! Você tem certeza que deseja excluir este módulo permanentemente?")) return;
     
-    const token = localStorage.getItem('capy_token');
+    const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+    const token = storedUser?.token;
+    
     try {
       const response = await fetch('/api/courses/delete', {
         method: 'POST',

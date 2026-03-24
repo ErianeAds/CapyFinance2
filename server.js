@@ -233,10 +233,8 @@ app.post('/api/login', (req, res) => {
     res.json({
       success: true,
       token,
-      user: {
-        email: row.email,
-        role: row.role
-      }
+      email: row.email,
+      role: row.role
     });
   } catch (err) {
     console.error('Login error:', err);

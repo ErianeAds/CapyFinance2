@@ -9,7 +9,9 @@ const Dashboard = () => {
 
   const fetchMetrics = async () => {
     try {
-      const token = localStorage.getItem('capy_token');
+      const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+      const token = storedUser?.token;
+      
       const response = await fetch('/api/metrics', {
         headers: { 'Authorization': `Bearer ${token}` }
       });

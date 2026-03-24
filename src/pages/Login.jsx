@@ -24,8 +24,8 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('capy_user', JSON.stringify(data.user));
-        localStorage.setItem('capy_token', data.token); // Salva o JWT
+        // Salva o objeto completo (token + user + role) para facilitar o acesso
+        localStorage.setItem('capy_user', JSON.stringify(data));
         // Se o usuário veio de uma tentativa de acesso à educação, redireciona para lá
         navigate('/education');
       } else {
