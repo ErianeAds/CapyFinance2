@@ -13,7 +13,7 @@ const fixMediaUrl = (url, type = 'image') => {
   if (url.includes('drive.google.com')) {
     const fileId = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
     if (fileId && fileId[1]) {
-      if (type === 'audio') return `https://drive.google.com/uc?export=view&id=${fileId[1]}`;
+      if (type === 'audio') return `https://docs.google.com/uc?export=download&id=${fileId[1]}`;
       if (type === 'image') return `https://docs.google.com/uc?id=${fileId[1]}&export=view`;
       if (type === 'preview') return `https://drive.google.com/file/d/${fileId[1]}/preview`;
     }
@@ -68,9 +68,23 @@ const Education = () => {
 
   const togglePlay = () => {
     if (!audioRef.current) return;
+    
+    // Check if audio has a source and is ready
+    if (audioRef.current.readyState === 0) {
+       console.warn("Áudio ainda não carregou a origem.");
+       return;
+    }
+
     if (audioRef.current.paused) {
-      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-      setIsPlaying(true);
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(e => {
+            console.error("Erro ao reproduzir áudio:", e.name, e.message);
+            setIsPlaying(false);
+          });
+      }
     } else {
       audioRef.current.pause();
       setIsPlaying(false);
@@ -301,8 +315,9 @@ const Education = () => {
                           onTimeUpdate={handleTimeUpdate}
                           onLoadedMetadata={handleLoadedMetadata}
                           onEnded={handleAudioEnded}
+                          onError={(e) => console.error("Erro no elemento de áudio:", e)}
                           className="hidden"
-                          preload="metadata"
+                          preload="auto"
                         />
                       </div>
                     </div>
