@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import { useTranslation } from 'react-i18next';
 
@@ -51,6 +51,48 @@ const Education = () => {
     video_url: '', audio_url: '', slide_url: '', mindmap_url: ''
   });
   const [activeMedia, setActiveMedia] = useState(null);
+  
+  // Custom Audio State
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const formatTime = (time) => {
+    if (isNaN(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    setCurrentTime(audioRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    setDuration(audioRef.current.duration);
+  };
+
+  const handleProgressChange = (e) => {
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('capy_user'));
@@ -61,8 +103,10 @@ const Education = () => {
   useEffect(() => {
     if (selectedCourse) {
       setActiveMedia(selectedCourse.video_url ? 'video' : (selectedCourse.slide_url ? 'slide' : 'none'));
+      setIsPlaying(false);
     } else {
       setActiveMedia(null);
+      setIsPlaying(false);
     }
   }, [selectedCourse]);
 
@@ -187,17 +231,60 @@ const Education = () => {
                   </div>
                 </div>
 
-                  {/* Podcast Audio Player */}
+                  {/* Premium Custom Audio Player */}
                 {selectedCourse.audio_url && (
-                  <div className="bg-gradient-to-br from-tertiary/10 to-primary/5 p-6 md:p-8 rounded-2xl md:rounded-[2rem] border border-tertiary/20 flex flex-col sm:flex-row items-center gap-6 md:gap-8 shadow-sm">
-                    <div className="w-16 h-16 md:w-24 md:h-24 bg-tertiary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
-                       <span className="material-symbols-outlined text-3xl md:text-5xl">headphones</span>
-                    </div>
-                    <div className="flex-1 space-y-3 md:space-y-4 w-full">
-                       <h4 className="text-xl md:text-2xl font-black font-headline text-primary">Audio Overview Podcast</h4>
-                       <audio controls className="w-full h-10 ring-1 ring-primary/10 rounded-full bg-white/50">
-                          <source src={selectedCourse.audio_url} type="audio/mpeg" />
-                       </audio>
+                  <div className="bg-gradient-to-br from-primary/5 via-surface-container-high to-tertiary/10 p-6 md:p-10 rounded-2xl md:rounded-[3rem] border border-primary/10 shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-700"></div>
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                      {/* Play Button Orb */}
+                      <button 
+                        onClick={togglePlay}
+                        className="w-20 h-20 md:w-24 md:h-24 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all group/btn"
+                      >
+                        <span className="material-symbols-outlined text-4xl md:text-5xl group-hover/btn:rotate-12 transition-transform">
+                          {isPlaying ? 'pause' : 'play_arrow'}
+                        </span>
+                      </button>
+
+                      <div className="flex-1 w-full space-y-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-end gap-2">
+                           <div>
+                             <p className="text-[10px] uppercase font-bold tracking-widest text-primary/60 mb-1">Exclusive Content</p>
+                             <h4 className="text-xl md:text-2xl font-black font-headline text-primary">Audio Overview Podcast</h4>
+                           </div>
+                           <div className="flex items-center gap-2 text-[10px] font-bold text-stone-400">
+                             <span className="material-symbols-outlined text-sm">equalizer</span>
+                             {isPlaying ? 'Now Playing' : 'Paused'}
+                           </div>
+                        </div>
+
+                        {/* Progress Bar Container */}
+                        <div className="space-y-2">
+                          <input 
+                            type="range"
+                            min="0"
+                            max={duration || 0}
+                            value={currentTime}
+                            onChange={handleProgressChange}
+                            className="w-full h-1.5 bg-primary/10 rounded-full appearance-none cursor-pointer accent-primary hover:accent-secondary transition-all"
+                          />
+                          <div className="flex justify-between text-[10px] font-black tracking-widest text-stone-400 uppercase">
+                            <span>{formatTime(currentTime)}</span>
+                            <span>{formatTime(duration)}</span>
+                          </div>
+                        </div>
+
+                        {/* Audio Element (Hidden) */}
+                        <audio 
+                          ref={audioRef}
+                          src={selectedCourse.audio_url}
+                          onTimeUpdate={handleTimeUpdate}
+                          onLoadedMetadata={handleLoadedMetadata}
+                          onEnded={handleAudioEnded}
+                          className="hidden"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
