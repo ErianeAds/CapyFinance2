@@ -134,8 +134,12 @@ db.exec(`CREATE TABLE IF NOT EXISTS market_metrics (
   symbol TEXT UNIQUE,
   value REAL,
   change REAL,
-  last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+  last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+  ref_date TEXT
 )`);
+
+// Fallback p/ adicionar coluna se já existir tabela s/ ela
+try { db.exec("ALTER TABLE market_metrics ADD COLUMN ref_date TEXT;"); } catch(e){}
 
 db.exec(`CREATE TABLE IF NOT EXISTS valuations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -187,38 +191,49 @@ initialUsers.forEach(({ email, password, role }) => {
 
 const updateMarketData = async () => {
   try {
-    // 1. Dólar da AwesomeAPI (Gratuito, s/ Key)
+    // 1. Dólar da AwesomeAPI
     const usdResponse = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL');
     const usdData = await usdResponse.json();
     const usdBrl = parseFloat(usdData.USDBRL.bid);
     const usdChange = parseFloat(usdData.USDBRL.pctChange);
 
-    // 2. Ibovespa & Inflação (HG Brasil - Tem limite sem key, mas excelente)
+    // 2. Ibovespa (HG Brasil)
     const hgResponse = await fetch('https://api.hgbrasil.com/finance?format=json');
     const hgData = await hgResponse.json();
-    
-    // Ibovespa
     const ibov = hgData.results.stocks.IBOVESPA.points;
     const ibovVar = hgData.results.stocks.IBOVESPA.variation;
 
-    // CDI (Aproximação Selic) e IPCA
-    // Selic/IPCA do Bacen são mais lentos, usamos o seed do HG ou Bacen se disponível
-    // HG retorna taxas do dia
-    const selic = 10.75; // Valor padrão se falhar Bacen
-    const ipca = 4.51;
+    // 3. Selic (SGS 432 - Meta Selic definida pelo Copom)
+    const selicResp = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json');
+    const selicData = await selicResp.json();
+    const selic = parseFloat(selicData[0].valor);
+
+    // 4. IPCA (SGS 13522 - Acumulado 12 meses)
+    const ipcaResp = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json');
+    const ipcaData = await ipcaResp.json();
+    const ipca = parseFloat(ipcaData[0].valor);
 
     const upsert = db.prepare(`
-      INSERT INTO market_metrics (symbol, value, change) 
-      VALUES (?, ?, ?) 
-      ON CONFLICT(symbol) DO UPDATE SET value=excluded.value, change=excluded.change, last_updated=CURRENT_TIMESTAMP
+      INSERT INTO market_metrics (symbol, value, change, ref_date) 
+      VALUES (?, ?, ?, ?) 
+      ON CONFLICT(symbol) DO UPDATE SET 
+        value=excluded.value, 
+        change=excluded.change, 
+        last_updated=CURRENT_TIMESTAMP,
+        ref_date=excluded.ref_date
     `);
 
-    upsert.run('Ibovespa', ibov, ibovVar);
-    upsert.run('USD/BRL', usdBrl, usdChange);
-    upsert.run('Selic', selic, 0);
-    upsert.run('IPCA', ipca, 0.3);
+    // Pegamos a data das APIs - Se for Selic/IPCA vem no selicData[0].data
+    const today = new Date().toLocaleDateString('pt-BR');
+    const bcDate = selicData[0]?.data || today;
 
-    console.log('🔄 Mercado atualizado via API externa.');
+    upsert.run('Ibovespa', ibov, ibovVar, today);
+    upsert.run('USD/BRL', usdBrl, usdChange, today);
+    upsert.run('Selic', selic, 0, bcDate);
+    upsert.run('IPCA', ipca, 0, ipcaData[0]?.data || today);
+    upsert.run('CDI', selic - 0.1, 0, bcDate);
+
+    console.log(`🔄 Mercado | Ibov: ${ibov} | Dólar: ${usdBrl} | Selic: ${selic} | CDI: ${selic - 0.1} | IPCA: ${ipca} | Ref: ${bcDate}`);
   } catch (err) {
     console.error('❌ Erro ao buscar mercado via API:', err.message);
   }

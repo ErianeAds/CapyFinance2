@@ -61,7 +61,13 @@ const Dashboard = () => {
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {metrics.map(m => (
             <div key={m.symbol} className="bg-surface-container-low px-4 py-3 md:px-6 md:py-4 rounded-xl md:rounded-2xl flex flex-col md:flex-row md:items-center gap-2 md:gap-4 transition-all hover:shadow-md border border-outline/5 hover:border-primary/20">
-              <div className={`w-2 h-2 rounded-full ${m.symbol === 'Ibovespa' ? 'bg-primary shadow-[0_0_8px_rgba(21,66,18,0.5)]' : m.symbol === 'Selic' ? 'bg-tertiary' : m.symbol === 'IPCA' ? 'bg-secondary' : 'bg-primary-container'}`}></div>
+              <div className={`w-2 h-2 rounded-full ${
+                m.symbol === 'Ibovespa' ? 'bg-primary shadow-[0_0_8px_rgba(21,66,18,0.5)]' : 
+                m.symbol === 'Selic' ? 'bg-tertiary shadow-[0_0_8px_rgba(224,155,10,0.4)]' : 
+                m.symbol === 'CDI' ? 'bg-secondary' :
+                m.symbol === 'IPCA' ? 'bg-error' : 
+                'bg-primary-container'
+              }`}></div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant opacity-60">
                   {m.symbol}
@@ -74,6 +80,11 @@ const Dashboard = () => {
                     {m.change >= 0 ? '+' : ''}{m.change}%
                   </span>
                 </p>
+                {m.ref_date && (
+                  <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-tighter">
+                   Ref: {m.ref_date}
+                  </p>
+                )}
               </div>
             </div>
           ))}
