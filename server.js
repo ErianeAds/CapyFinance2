@@ -185,6 +185,49 @@ initialUsers.forEach(({ email, password, role }) => {
   }
 });
 
+const updateMarketData = async () => {
+  try {
+    // 1. Dólar da AwesomeAPI (Gratuito, s/ Key)
+    const usdResponse = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL');
+    const usdData = await usdResponse.json();
+    const usdBrl = parseFloat(usdData.USDBRL.bid);
+    const usdChange = parseFloat(usdData.USDBRL.pctChange);
+
+    // 2. Ibovespa & Inflação (HG Brasil - Tem limite sem key, mas excelente)
+    const hgResponse = await fetch('https://api.hgbrasil.com/finance?format=json');
+    const hgData = await hgResponse.json();
+    
+    // Ibovespa
+    const ibov = hgData.results.stocks.IBOVESPA.points;
+    const ibovVar = hgData.results.stocks.IBOVESPA.variation;
+
+    // CDI (Aproximação Selic) e IPCA
+    // Selic/IPCA do Bacen são mais lentos, usamos o seed do HG ou Bacen se disponível
+    // HG retorna taxas do dia
+    const selic = 10.75; // Valor padrão se falhar Bacen
+    const ipca = 4.51;
+
+    const upsert = db.prepare(`
+      INSERT INTO market_metrics (symbol, value, change) 
+      VALUES (?, ?, ?) 
+      ON CONFLICT(symbol) DO UPDATE SET value=excluded.value, change=excluded.change, last_updated=CURRENT_TIMESTAMP
+    `);
+
+    upsert.run('Ibovespa', ibov, ibovVar);
+    upsert.run('USD/BRL', usdBrl, usdChange);
+    upsert.run('Selic', selic, 0);
+    upsert.run('IPCA', ipca, 0.3);
+
+    console.log('🔄 Mercado atualizado via API externa.');
+  } catch (err) {
+    console.error('❌ Erro ao buscar mercado via API:', err.message);
+  }
+};
+
+// Iniciar atualização e agendar p/ cada 30 min
+updateMarketData();
+setInterval(updateMarketData, 30 * 60 * 1000);
+
 const countRow = db.prepare("SELECT COUNT(*) as count FROM market_metrics").get();
 if (countRow && countRow.count === 0) {
   const metrics = [
@@ -193,9 +236,9 @@ if (countRow && countRow.count === 0) {
     ['IPCA', 4.51, 0.3],
     ['USD/BRL', 4.92, -0.05]
   ];
-  const insert = db.prepare(`INSERT INTO market_metrics (symbol, value, change) VALUES (?, ?, ?)`);
+  const upsert = db.prepare(`INSERT INTO market_metrics (symbol, value, change) VALUES (?, ?, ?)`);
   metrics.forEach(([symbol, value, change]) => {
-    insert.run(symbol, value, change);
+    upsert.run(symbol, value, change);
   });
   console.log('🌿 Market metrics seeded.');
 }

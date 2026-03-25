@@ -49,7 +49,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl md:text-4xl font-black font-headline text-on-surface tracking-tight leading-tight">
-            Ecosystem Dashboard
+            Ecossistema Financeiro do Brasil
           </h1>
           <div className="flex items-center gap-2 text-primary font-bold text-[10px] md:text-xs bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
