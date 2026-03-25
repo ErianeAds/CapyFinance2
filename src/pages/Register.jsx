@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminSecret, setAdminSecret] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Register = () => {
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, admin_secret: adminSecret }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -65,6 +66,17 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">Chave Admin (Opcional)</label>
+              <input 
+                type="password" 
+                className="w-full bg-surface-container border-none p-5 rounded-2xl font-bold focus:ring-2 ring-primary outline-none transition-all" 
+                value={adminSecret}
+                onChange={(e) => setAdminSecret(e.target.value)}
+                placeholder="Ex: CAPY_ADM_XXXX"
               />
             </div>
             

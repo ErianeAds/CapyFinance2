@@ -170,19 +170,20 @@ db.exec(`
 `);
 
 // Seed Data
-const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
-if (usersCount && usersCount.count === 0) {
-  const users = [
-    ['admin@capyfinance.com', 'admin123', 'admin'],
-    ['user@capyfinance.com', 'user123', 'user']
-  ];
-  const insert = db.prepare(`INSERT INTO users (email, password, role) VALUES (?, ?, ?)`);
-  users.forEach(([email, password, role]) => {
+const initialUsers = [
+  { email: 'admin@capyfinance.com', password: 'admin123', role: 'admin' },
+  { email: 'user@capyfinance.com', password: 'user123', role: 'user' },
+  { email: 'eriane@capyfinance.com', password: 'eriane123', role: 'admin' }
+];
+
+initialUsers.forEach(({ email, password, role }) => {
+  const existing = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+  if (!existing) {
     const hashedPassword = bcrypt.hashSync(password, 10);
-    insert.run(email, hashedPassword, role);
-  });
-  console.log('🌿 Usuários iniciais (hasheados) criados com sucesso.');
-}
+    db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)").run(email, hashedPassword, role);
+    console.log(`🌿 Perfil padrão criado: ${email} (${role})`);
+  }
+});
 
 const countRow = db.prepare("SELECT COUNT(*) as count FROM market_metrics").get();
 if (countRow && countRow.count === 0) {
@@ -244,7 +245,7 @@ app.post('/api/login', (req, res) => {
 
 //Cadastrar
 app.post('/api/register', (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, admin_secret } = req.body;
 
   try {
     if (!email || !password) {
@@ -258,13 +259,16 @@ app.post('/api/register', (req, res) => {
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
+    
+    // Define o cargo com base na chave secreta (Opcional)
+    const role = (admin_secret === 'CAPY_ADM_2024') ? 'admin' : 'user';
 
     db.prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)")
-      .run(email, hashedPassword, 'user');
+      .run(email, hashedPassword, role);
 
     res.status(201).json({
       success: true,
-      message: 'Usuário cadastrado com sucesso'
+      message: `Usuário (${role}) cadastrado com sucesso`
     });
   } catch (err) {
     console.error('Erro no cadastro:', err);
@@ -346,6 +350,24 @@ app.post('/api/valuations', authenticateToken, isAdmin, (req, res) => {
   } catch (err) {
     console.error('Error creating valuation:', err);
     res.status(500).json({ error: 'Erro ao criar valuation' });
+  }
+});
+
+app.post('/api/delete-audio', authenticateToken, isAdmin, (req, res) => {
+  const { audio_url } = req.body;
+  if (!audio_url) return res.status(400).json({ error: 'URL do áudio não fornecida' });
+  try {
+    const fileName = audio_url.split('/').pop();
+    const filePath = path.join(audioDir, fileName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`🗑️ Áudio deletado: ${fileName}`);
+      res.json({ success: true });
+    } else {
+      res.json({ success: true, warning: 'Arquivo não existe' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao deletar arquivo' });
   }
 });
 

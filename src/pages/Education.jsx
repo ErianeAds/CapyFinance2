@@ -258,6 +258,29 @@ const Education = () => {
     xhr.send(formData);
   };
 
+  const handleRemoveAudio = async () => {
+    if (!courseForm.audio_url) return;
+    if (window.confirm("Deseja remover o áudio permanentemente do servidor?")) {
+      const storedUser = JSON.parse(localStorage.getItem('capy_user'));
+      const token = storedUser?.token;
+      
+      try {
+        await fetch('/api/delete-audio', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ audio_url: courseForm.audio_url })
+        });
+        setCourseForm({ ...courseForm, audio_url: '' });
+      } catch (err) {
+        console.error("Erro ao deletar áudio:", err);
+        setCourseForm({ ...courseForm, audio_url: '' });
+      }
+    }
+  };
+
   const handleEdit = (course) => {
     setCourseForm(course);
     setIsEditing(true);
@@ -598,9 +621,24 @@ const Education = () => {
                               </p>
                            </div>
                          </div>
-                      </label>
-                   </div>
-                </div>
+                          
+                          {courseForm.audio_url && !uploading && (
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRemoveAudio();
+                              }}
+                              className="absolute top-2 right-2 p-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-full transition-all flex items-center justify-center z-20 shadow-sm"
+                              title="Excluir áudio"
+                            >
+                               <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          )}
+                       </label>
+                    </div>
+                 </div>
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">NotebookLM / Slides</label>
                    <input className="w-full bg-surface-container border-none p-5 rounded-2xl text-xs font-bold focus:ring-2 ring-primary transition-all outline-none" value={courseForm.slide_url} onChange={e => setCourseForm({...courseForm, slide_url: e.target.value})} />
